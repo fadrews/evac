@@ -1,0 +1,137 @@
+{
+  "title": "Wildfire Evacuation",
+
+  "irb_consent": {
+    "title": "Research Study Information",
+    "text": [
+      "You are invited to participate in a research study about wildfire evacuation decision-making.",
+      "Your participation is voluntary. You may stop at any time without penalty.",
+      "Your responses will be kept confidential and used for research purposes only.",
+      "This study involves reviewing information and making decisions in a simulated wildfire scenario."
+    ]
+  },
+
+  "contact_screen": {
+    "title": "Contact Information (Optional)",
+    "text": [
+      "If you are willing, you may provide contact information so we can follow up with you about this study.",
+      "Providing contact information is optional and not required to participate."
+    ]
+  },
+
+  "scenario_description": {
+    "title": "Wildfire Evacuation Scenario",
+    "text": [
+      "You are at home during a wildfire event in your area.",
+      "Over the next several hours, conditions may worsen.",
+      "You will receive information from different sources.",
+      "At each stage, review the available information and decide what you would do."
+    ]
+  },
+
+  "start_time_display": "14:00",
+  "time_steps": [-6, -5, -4, -3, -2, -1, 0],
+
+  "tiles": {
+    "1": {
+      "label": "Hazard Conditions",
+      "content": {
+        "-6": { "text": "Clear skies, no smoke visible.", "image": "images/clear_sky.jpg" },
+        "-5": { "text": "Faint smoke visible on the horizon." },
+        "-4": { "text": "Smoke clearly visible in the area.", "image": "images/smoke_visible.jpg" },
+        "-3": { "text": "Thick smoke present, ash falling." },
+        "-2": { "text": "Very thick smoke, embers nearby.", "image": "images/embers_close.jpg" },
+        "-1": { "text": "Flames visible nearby." },
+        "0":  { "text": "Fire entering the neighborhood.", "image": "images/fire_near.jpg" }
+      }
+    },
+
+    "2": {
+      "label": "Official Alerts",
+      "content": {
+        "-6": { "text": "Red Flag Warning issued for the area.","image": "images/red_flag.jpg" },
+        "-5": { "text": "Fire Weather Watch remains in effect." },
+        "-4": { "text": "Evacuation Warning issued for nearby zones." },
+        "-3": { "text": "Authorities advise preparing to evacuate." },
+        "-2": { "text": "Mandatory Evacuation Order issued for adjacent areas." },
+        "-1": { "text": "Mandatory Evacuation Order expanded. Leave immediately." }
+      }
+    },
+
+    "3": {
+      "label": "Text Messages",
+      "content": {
+        "-5": { "text": "Neighbor: Smells smoky outside." },
+        "-4": { "text": "Neighbor: Packing just in case." },
+        "-3": { "text": "Family: Are you thinking of leaving?" },
+        "-2": { "text": "Friend: Traffic is getting bad." },
+        "-1": { "text": "Neighbor: We just left." }
+      }
+    },
+
+    "4": {
+      "label": "News Update",
+      "content": {
+        "-6": { "text": "Breaking news: Wildfire reported in nearby foothills." },
+        "-4": { "text": "Update: Fire growing rapidly with strong winds." },
+        "-3": { "text": "Live coverage: Evacuations underway in nearby communities." },
+        "-2": { "text": "Officials urge residents to follow evacuation orders." },
+        "-1": { "text": "Breaking: Major roads closing due to fire activity." }
+      }
+    },
+
+    "5": {
+      "label": "Traffic and Roads",
+      "content": {
+        "-6": { "text": "Roads are clear and traffic is normal." },
+        "-4": { "text": "Light congestion reported on main routes." },
+        "-3": { "text": "Stop and go traffic on evacuation routes." },
+        "-2": { "text": "Heavy congestion and multiple road closures." },
+        "-1": { "text": "Gridlock on major exits from the area." }
+      }
+    },
+
+    "6": {
+      "label": "Utilities and Infrastructure",
+      "content": {
+        "-5": { "text": "Possible power shutoffs announced." },
+        "-4": { "text": "Rolling power outages reported." },
+        "-3": { "text": "Cell service intermittent in some areas." },
+        "-2": { "text": "Water pressure reduced in parts of the community." },
+        "-1": { "text": "Widespread power and communication outages." }
+      }
+    },
+
+    "7": {
+      "label": "Household Readiness",
+      "content": {
+        "-6": { "text": "No preparations underway." },
+        "-5": { "text": "Thinking about what to pack." },
+        "-4": { "text": "Packing essential items." },
+        "-3": { "text": "Gathering pets and household members." },
+        "-2": { "text": "Waiting for someone to return home." },
+        "-1": { "text": "Leaving with limited belongings." }
+      }
+    },
+
+    "8": {
+      "label": "Health and Smoke",
+      "content": {
+        "-5": { "text": "Air quality advisory issued." },
+        "-4": { "text": "Smoke causing mild irritation." },
+        "-3": { "text": "Coughing and reduced visibility reported." },
+        "-2": { "text": "Unhealthy air conditions outdoors." },
+        "-1": { "text": "Breathing difficult without protection." }
+      }
+    },
+
+    "9":  { "label": "Evacuation Destinations", "content": {} },
+    "10": { "label": "Emergency Personnel Presence", "content": {} },
+    "11": { "label": "Community Activity", "content": {} },
+    "12": { "label": "Social Media", "content": {} },
+    "13": { "label": "Transit Options", "content": {} },
+    "14": { "label": "Navigation and Maps", "content": {} },
+    "15": { "label": "Property Concerns", "content": {} },
+    "16": { "label": "Misinformation or Rumors", "content": {} }
+  }
+}

@@ -1,0 +1,94 @@
+[
+  {
+    "participant_id": "01",
+    "time_hour": -6,
+    "timestamp": "2026-01-27T09:21:29.837146",
+    "hazard_cues": {
+      "smoke": "none",
+      "fire_distance_miles": 15,
+      "wind": "light"
+    },
+    "official_alert": null,
+    "text_message": null,
+    "news_flash": "Breaking: Wildfire reported in foothills.",
+    "subjective": {
+      "risk_perception": 0,
+      "time_pressure": 100,
+      "trust_alerts": 100,
+      "emotional_state": 0,
+      "social_pressure": 0,
+      "evac_feasibility": 100,
+      "decision_leaning": 0
+    },
+    "irreversible_action": "no"
+  },
+  {
+    "participant_id": "01",
+    "time_hour": -5,
+    "timestamp": "2026-01-27T09:22:35.862350",
+    "hazard_cues": {
+      "smoke": "faint",
+      "fire_distance_miles": 12,
+      "wind": "light"
+    },
+    "official_alert": "Fire Weather Watch issued for your area.",
+    "text_message": "Friend: Smells smoky near my place but seems far.",
+    "news_flash": null,
+    "subjective": {
+      "risk_perception": 0,
+      "time_pressure": 100,
+      "trust_alerts": 100,
+      "emotional_state": 0,
+      "social_pressure": 0,
+      "evac_feasibility": 100,
+      "decision_leaning": 0
+    },
+    "irreversible_action": "no"
+  },
+  {
+    "participant_id": "01",
+    "time_hour": -4,
+    "timestamp": "2026-01-27T09:23:44.172224",
+    "hazard_cues": {
+      "smoke": "noticeable",
+      "fire_distance_miles": 9,
+      "wind": "gusty"
+    },
+    "official_alert": "Evacuation Warning: Be ready to leave.",
+    "text_message": "Neighbor: I\u2019m packing just in case.",
+    "news_flash": "Update: Fire has grown rapidly overnight.",
+    "subjective": {
+      "risk_perception": 20,
+      "time_pressure": 80,
+      "trust_alerts": 100,
+      "emotional_state": 10,
+      "social_pressure": 20,
+      "evac_feasibility": 100,
+      "decision_leaning": 10
+    },
+    "irreversible_action": "no"
+  },
+  {
+    "participant_id": "01",
+    "time_hour": -3,
+    "timestamp": "2026-01-27T09:24:53.361607",
+    "hazard_cues": {
+      "smoke": "thick",
+      "fire_distance_miles": 6,
+      "wind": "gusty"
+    },
+    "official_alert": "Evacuation Warning remains in effect.",
+    "text_message": "Family: Should we leave now?",
+    "news_flash": "Live: Fire jumps containment lines.",
+    "subjective": {
+      "risk_perception": 40,
+      "time_pressure": 60,
+      "trust_alerts": 80,
+      "emotional_state": 40,
+      "social_pressure": 30,
+      "evac_feasibility": 100,
+      "decision_leaning": 40
+    },
+    "irreversible_action": "yes"
+  }
+]

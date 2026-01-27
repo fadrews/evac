@@ -1,0 +1,316 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-27T14:37:06.633699"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-27T14:37:08.218287"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:37:11.158478"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 2.59,
+    "timestamp": "2026-01-27T14:37:13.750587"
+  },
+  {
+    "time_step": -6,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 38,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 64,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 42,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 59,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 45,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 52,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 57
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-27T14:37:40.771225"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:37:45.194487"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 6.77,
+    "timestamp": "2026-01-27T14:37:51.964087"
+  },
+  {
+    "time_step": -5,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-27T14:37:57.445042"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:37:59.086203"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 10.18,
+    "timestamp": "2026-01-27T14:38:09.261897"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:11.357024"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 2.7,
+    "timestamp": "2026-01-27T14:38:14.050030"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "3",
+    "tile_label": "Text Messages",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:16.072334"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "4",
+    "tile_label": "News Update",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:23.140622"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "4",
+    "duration_seconds": 3.41,
+    "timestamp": "2026-01-27T14:38:26.546729"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "5",
+    "tile_label": "Traffic and Roads",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:28.590668"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "6",
+    "tile_label": "Utilities and Infrastructure",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:33.561584"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "6",
+    "duration_seconds": 2.4,
+    "timestamp": "2026-01-27T14:38:35.957685"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "7",
+    "tile_label": "Household Readiness",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:37.320949"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "7",
+    "duration_seconds": 4.98,
+    "timestamp": "2026-01-27T14:38:42.304643"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "8",
+    "tile_label": "Health and Smoke",
+    "updated": true,
+    "timestamp": "2026-01-27T14:38:43.798953"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "8",
+    "duration_seconds": 8.25,
+    "timestamp": "2026-01-27T14:38:52.050181"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "9",
+    "tile_label": "Evacuation Destinations",
+    "updated": false,
+    "timestamp": "2026-01-27T14:38:54.053340"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "9",
+    "duration_seconds": 1.84,
+    "timestamp": "2026-01-27T14:38:55.898239"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "10",
+    "tile_label": "Emergency Personnel Presence",
+    "updated": false,
+    "timestamp": "2026-01-27T14:38:56.975401"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "10",
+    "duration_seconds": 1.78,
+    "timestamp": "2026-01-27T14:38:58.758204"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "11",
+    "tile_label": "Community Activity",
+    "updated": false,
+    "timestamp": "2026-01-27T14:38:59.775097"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "11",
+    "duration_seconds": 2.15,
+    "timestamp": "2026-01-27T14:39:01.924390"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Media",
+    "updated": false,
+    "timestamp": "2026-01-27T14:39:03.503880"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 2.18,
+    "timestamp": "2026-01-27T14:39:05.683041"
+  },
+  {
+    "time_step": -4,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 24,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "evacuate_family_only",
+    "timestamp": "2026-01-27T14:39:28.298840"
+  },
+  {
+    "time_step": -3,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:39:31.133611"
+  },
+  {
+    "time_step": -3,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 7.85,
+    "timestamp": "2026-01-27T14:39:38.981319"
+  },
+  {
+    "time_step": -3,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-27T14:39:44.506163"
+  },
+  {
+    "time_step": -2,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:40:03.243716"
+  },
+  {
+    "time_step": -2,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 5.14,
+    "timestamp": "2026-01-27T14:40:08.380787"
+  },
+  {
+    "time_step": -2,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "evacuate_everyone_now",
+    "timestamp": "2026-01-27T14:40:17.787454"
+  }
+]

@@ -1,0 +1,135 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-27T14:24:34.590224"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-27T14:24:43.599852"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "3",
+    "tile_label": "Text Messages",
+    "updated": false,
+    "timestamp": "2026-01-27T14:25:10.801970"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "3",
+    "duration_seconds": 2.12,
+    "timestamp": "2026-01-27T14:25:12.922265"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "8",
+    "tile_label": "Health and Smoke",
+    "updated": false,
+    "timestamp": "2026-01-27T14:25:16.597465"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "8",
+    "duration_seconds": 2.21,
+    "timestamp": "2026-01-27T14:25:18.808806"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "updated": true,
+    "timestamp": "2026-01-27T14:25:21.726236"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 3.79,
+    "timestamp": "2026-01-27T14:25:25.528633"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "14",
+    "tile_label": "Navigation and Maps",
+    "updated": false,
+    "timestamp": "2026-01-27T14:25:26.913546"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "14",
+    "duration_seconds": 4.71,
+    "timestamp": "2026-01-27T14:25:31.625969"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "6",
+    "tile_label": "Utilities and Infrastructure",
+    "updated": false,
+    "timestamp": "2026-01-27T14:25:38.302792"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "6",
+    "duration_seconds": 2.19,
+    "timestamp": "2026-01-27T14:25:40.497526"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "9",
+    "tile_label": "Evacuation Destinations",
+    "updated": false,
+    "timestamp": "2026-01-27T14:25:45.373491"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "9",
+    "duration_seconds": 1.77,
+    "timestamp": "2026-01-27T14:25:47.141525"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "14",
+    "tile_label": "Navigation and Maps",
+    "updated": false,
+    "timestamp": "2026-01-27T14:25:55.775839"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "14",
+    "duration_seconds": 6.21,
+    "timestamp": "2026-01-27T14:26:01.988072"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:26:09.264725"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 3.32,
+    "timestamp": "2026-01-27T14:26:12.582674"
+  }
+]

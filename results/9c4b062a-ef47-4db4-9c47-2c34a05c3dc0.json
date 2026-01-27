@@ -1,0 +1,45 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-27T14:47:52.340824"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-27T14:47:54.288027"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "updated": true,
+    "timestamp": "2026-01-27T14:47:58.738063"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 10.53,
+    "timestamp": "2026-01-27T14:48:09.270105"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "updated": true,
+    "timestamp": "2026-01-27T14:48:11.001788"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 2.67,
+    "timestamp": "2026-01-27T14:48:13.676454"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "title": "Wildfire Evacuation",
+  "time_steps": [-6, -5, -4, -3, -2, -1],
+  "tiles": {
+    "1": {
+      "label": "Hazard Conditions",
+      "content": {
+        "-6": {
+          "text": "Clear skies, no smoke visible.",
+          "image": "images/fire_far.jpg"
+        },
+        "-4": {
+          "text": "Smoke clearly visible.",
+          "image": "images/smoke_visible.jpg"
+        },
+        "-2": {
+          "text": "Embers nearby, smoke thick.",
+          "image": "images/embers_close.jpg"
+        }
+      }
+    },
+    "2": {
+      "label": "Official Alerts",
+      "content": {
+        "-5": { "text": "Fire Weather Watch issued." },
+        "-4": { "text": "Evacuation Warning." },
+        "-2": { "text": "Mandatory Evacuation Order." }
+      }
+    },
+    "3": {
+      "label": "Text Messages",
+      "content": {
+        "-4": { "text": "Neighbor: Packing just in case." },
+        "-3": { "text": "Family: Are you leaving?" }
+      }
+    },
+    "4": {
+      "label": "News Update",
+      "content": {
+        "-6": { "text": "Breaking: Wildfire reported." },
+        "-2": { "text": "Officials urge evacuation." }
+      }
+    }
+  }
+}

@@ -6,6 +6,13 @@ from datetime import timedelta
 import uuid
 import os
 
+# >>> ADDED IMPORTS (EMAIL)
+import smtplib
+import ssl
+from email.message import EmailMessage
+from pathlib import Path
+# <<< END ADDED IMPORTS
+
 # ======================================================
 # LOAD CONTROL FILE
 # ======================================================
@@ -57,6 +64,11 @@ if "time_index" not in st.session_state:
     st.session_state.scenario_ended = False
     st.session_state.family_evacuated = False
 
+# >>> ADDED SESSION FLAG (EMAIL)
+if "results_emailed" not in st.session_state:
+    st.session_state.results_emailed = False
+# <<< END ADDED FLAG
+
 CURRENT_TIME = TIME_STEPS[st.session_state.time_index]
 
 # ======================================================
@@ -79,6 +91,41 @@ def log_event(event, payload):
         "timestamp": datetime.datetime.now().isoformat()
     })
     save_logs()
+
+# ======================================================
+# EMAIL RESULTS (AUTO)
+# ======================================================
+
+def email_results_file(results_path):
+    sender_email = "fadrews@gmail.com"
+    sender_app_password = "spsu jamp ozlb pjue"
+    recipient_email = "fadrews@gmail.com"
+
+    results_path = Path(results_path)
+    if not results_path.exists():
+        raise FileNotFoundError("Results file not found.")
+
+    msg = EmailMessage()
+    msg["Subject"] = "Wildfire Evacuation Scenario – Results"
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
+
+    msg.set_content(
+        f"Attached is the results file for session {st.session_state.session_id}."
+    )
+
+    with open(results_path, "rb") as f:
+        msg.add_attachment(
+            f.read(),
+            maintype="application",
+            subtype="json",
+            filename=results_path.name
+        )
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(sender_email, sender_app_password)
+        server.send_message(msg)
 
 # ======================================================
 # HELPERS
@@ -124,30 +171,12 @@ st.markdown(
         font-size: 15px !important;
         padding: 10px !important;
         margin: 0 !important;
-
         display: -webkit-box !important;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-align: center;
     }
-
-    div[data-testid="column"] button::after {
-        content: "❗";
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        color: red;
-        font-size: 18px;
-        font-weight: bold;
-        display: none;
-        pointer-events: none;
-    }
-
-    div[data-testid="column"] button[data-updated="true"]::after {
-        display: block;
-    }
-
     button[aria-label="Close"] {
         display: none !important;
     }
@@ -226,12 +255,25 @@ if st.session_state.show_intro:
     st.stop()
 
 # ======================================================
-# SCENARIO END SCREEN
+# SCENARIO END SCREEN (AUTO EMAIL)
 # ======================================================
 
 if st.session_state.scenario_ended:
     st.markdown("## Scenario Complete")
     st.write("You have chosen to evacuate. This ends the scenario.")
+
+    results_path = os.path.join(
+        LOG_DIR, f"{st.session_state.session_id}.json"
+    )
+
+    if not st.session_state.results_emailed:
+        try:
+            email_results_file(results_path)
+            log_event("results_emailed", {"recipient": "fadrews@gmail.com"})
+            st.session_state.results_emailed = True
+        except Exception as e:
+            log_event("results_email_failed", {"error": str(e)})
+
     st.stop()
 
 # ======================================================
@@ -252,30 +294,9 @@ if not st.session_state.awaiting_assessment:
     for i in range(1, 17):
         tile_id = str(i)
         label = TILES[tile_id]["label"] if tile_id in TILES else f"Tile {i}"
-        updated = tile_has_update_or_content(tile_id)
 
         with cols[(i - 1) % 4]:
-            clicked = st.button(
-                f"{i}. {label}",
-                key=f"tile_{i}_{CURRENT_TIME}",
-                use_container_width=True
-            )
-
-            st.markdown(
-                f"""
-                <script>
-                const btns = window.parent.document.querySelectorAll("button");
-                btns.forEach(b => {{
-                    if (b.innerText === "{i}. {label}") {{
-                        b.setAttribute("data-updated", "{str(updated).lower()}");
-                    }}
-                }});
-                </script>
-                """,
-                unsafe_allow_html=True
-            )
-
-            if clicked:
+            if st.button(f"{i}. {label}", key=f"tile_{i}_{CURRENT_TIME}"):
                 st.session_state.open_tile = tile_id
                 st.session_state.tile_open_time = time.time()
                 st.session_state.tiles_opened_this_step.add(tile_id)
@@ -284,8 +305,7 @@ if not st.session_state.awaiting_assessment:
                     "tile_opened",
                     {
                         "tile_id": tile_id,
-                        "tile_label": label,
-                        "updated": updated
+                        "tile_label": label
                     }
                 )
 
@@ -359,18 +379,15 @@ if st.session_state.awaiting_assessment:
     if decision:
         log_event("assessment", {"responses": responses, "decision": decision})
 
-        # TERMINAL ACTION — END SCENARIO IMMEDIATELY
         if decision == "evacuate_everyone_now":
             st.session_state.scenario_ended = True
             st.session_state.awaiting_assessment = False
             st.rerun()
-            st.stop()  # ⬅️ CRITICAL: prevent further execution
+            st.stop()
 
-        # ONE-TIME STATE CHANGE
         if decision == "evacuate_family_only":
             st.session_state.family_evacuated = True
 
-        # CONTINUE SCENARIO
         st.session_state.slider_seed += 1
         st.session_state.awaiting_assessment = False
         st.session_state.tiles_opened_this_step.clear()

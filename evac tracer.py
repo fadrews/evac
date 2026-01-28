@@ -5,6 +5,8 @@ import datetime
 from datetime import timedelta
 import uuid
 import os
+st.write("CONTROL FILE LOADED FROM:", os.path.abspath("control.json"))
+
 
 # >>> ADDED IMPORTS (EMAIL)
 import smtplib
@@ -155,6 +157,16 @@ def tile_has_update_or_content(tile_id):
     previous = TILES[tile_id]["content"].get(str(prev_time))
 
     return current != previous
+
+def get_social_response(policy_name):
+    """
+    Returns a deterministic social contact response
+    based on the current time step and policy name.
+    """
+    policies = CONTROL.get("social_response_policies", {})
+    policy = policies.get(policy_name, {})
+
+    return policy.get(str(CURRENT_TIME), "No response received.")
 
 # ======================================================
 # PAGE SETUP + CSS
@@ -315,16 +327,57 @@ if not st.session_state.awaiting_assessment:
 
 if st.session_state.open_tile:
     tile_id = st.session_state.open_tile
+    tile = TILES[tile_id]
     content = get_tile_content(tile_id)
 
-    @st.dialog(TILES[tile_id]["label"])
+    @st.dialog(tile["label"])
     def tile_modal():
-        if content:
-            st.write(content.get("text", ""))
-            if "image" in content:
-                st.image(content["image"], width=500)
+
+        # ---- SOCIAL CONTACTS TILE ----
+        if tile.get("type") == "social_contacts":
+            contacts = tile.get("contacts", [])
+#            st.write("You can send a message to:")
+#            st.write("DEBUG contacts =", contacts)
+            for contact in contacts:
+                name = contact["name"]
+                policy = contact["response_policy"]
+                contact_id = contact["id"]
+
+                if st.button(f"Text {name}", key=f"contact_{contact_id}_{CURRENT_TIME}"):
+
+                    log_event(
+                        "social_message_sent",
+                        {
+                            "to": name,
+                            "contact_id": contact_id,
+                            "message_type": "evacuation_advice"
+                        }
+                    )
+
+                    time.sleep(1.2)
+
+                    response = get_social_response(policy)
+
+                    st.info(f"{name} replies:\n\n{response}")
+
+                    log_event(
+                        "social_response_received",
+                        {
+                            "from": name,
+                            "contact_id": contact_id,
+                            "response_policy": policy,
+                            "response": response
+                        }
+                    )
+
+        # ---- STANDARD TILE ----
         else:
-            st.info("No information available.")
+            if content:
+                st.write(content.get("text", ""))
+                if "image" in content:
+                    st.image(content["image"], width=500)
+            else:
+                st.info("No information available.")
 
         if st.button("Close"):
             duration = round(time.time() - st.session_state.tile_open_time, 2)

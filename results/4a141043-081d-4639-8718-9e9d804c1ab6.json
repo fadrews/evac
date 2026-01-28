@@ -1,0 +1,188 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T10:56:27.088106"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T10:56:28.778241"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "timestamp": "2026-01-28T10:56:33.315023"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 3.1,
+    "timestamp": "2026-01-28T10:56:36.413037"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "timestamp": "2026-01-28T10:56:37.721779"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 1.89,
+    "timestamp": "2026-01-28T10:56:39.614401"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:56:41.004784"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Alex (Friend)",
+    "contact_id": "alex",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:56:44.800658"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Alex (Friend)",
+    "contact_id": "alex",
+    "response_policy": "cautious_friend",
+    "response": "I heard about the fire, but it still sounds pretty far away.",
+    "timestamp": "2026-01-28T10:56:46.005761"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:56:52.260019"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "response_policy": "skeptical_friend",
+    "response": "Fires happen every year. I wouldn't stress yet.",
+    "timestamp": "2026-01-28T10:56:53.469068"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Sam (Sibling)",
+    "contact_id": "sam",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:56:58.399415"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Sam (Sibling)",
+    "contact_id": "sam",
+    "response_policy": "alarmist_friend",
+    "response": "I don't like this at all. Fires spread fast.",
+    "timestamp": "2026-01-28T10:56:59.615441"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 22.94,
+    "timestamp": "2026-01-28T10:57:03.940578"
+  },
+  {
+    "time_step": -6,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-28T10:57:12.123622"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:57:13.781640"
+  },
+  {
+    "time_step": -5,
+    "event": "social_message_sent",
+    "to": "Alex (Friend)",
+    "contact_id": "alex",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:57:15.793167"
+  },
+  {
+    "time_step": -5,
+    "event": "social_response_received",
+    "from": "Alex (Friend)",
+    "contact_id": "alex",
+    "response_policy": "cautious_friend",
+    "response": "It smells smoky here too. I'm watching the updates.",
+    "timestamp": "2026-01-28T10:57:17.017902"
+  },
+  {
+    "time_step": -5,
+    "event": "social_message_sent",
+    "to": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:57:21.041665"
+  },
+  {
+    "time_step": -5,
+    "event": "social_response_received",
+    "from": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "response_policy": "skeptical_friend",
+    "response": "Officials tend to overreact with these warnings.",
+    "timestamp": "2026-01-28T10:57:22.262018"
+  },
+  {
+    "time_step": -5,
+    "event": "social_message_sent",
+    "to": "Sam (Sibling)",
+    "contact_id": "sam",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:57:26.830288"
+  },
+  {
+    "time_step": -5,
+    "event": "social_response_received",
+    "from": "Sam (Sibling)",
+    "contact_id": "sam",
+    "response_policy": "alarmist_friend",
+    "response": "Smoke already worries me. I'd start getting ready.",
+    "timestamp": "2026-01-28T10:57:28.053483"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 22.98,
+    "timestamp": "2026-01-28T10:57:36.761143"
+  }
+]

@@ -42,14 +42,14 @@
         "-3": { "text": "Thick smoke present, ash falling." },
         "-2": { "text": "Very thick smoke, embers nearby.", "image": "images/embers_close.jpg" },
         "-1": { "text": "Flames visible nearby." },
-        "0":  { "text": "Fire entering the neighborhood.", "image": "images/fire_near.jpg" }
+        "0": { "text": "Fire entering the neighborhood.", "image": "images/fire_near.jpg" }
       }
     },
 
     "2": {
       "label": "Official Alerts",
       "content": {
-        "-6": { "text": "Red Flag Warning issued for the area.","image": "images/red_flag.jpg" },
+        "-6": { "text": "Red Flag Warning issued for the area.", "image": "images/red_flag.jpg" },
         "-5": { "text": "Fire Weather Watch remains in effect." },
         "-4": { "text": "Evacuation Warning issued for nearby zones." },
         "-3": { "text": "Authorities advise preparing to evacuate." },
@@ -59,7 +59,7 @@
     },
 
     "3": {
-      "label": "Text Messages",
+      "label": "Received Text Messages",
       "content": {
         "-5": { "text": "Neighbor: Smells smoky outside." },
         "-4": { "text": "Neighbor: Packing just in case." },
@@ -125,13 +125,125 @@
       }
     },
 
-    "9":  { "label": "Evacuation Destinations", "content": {} },
-    "10": { "label": "Emergency Personnel Presence", "content": {} },
-    "11": { "label": "Community Activity", "content": {} },
-    "12": { "label": "Social Media", "content": {} },
-    "13": { "label": "Transit Options", "content": {} },
-    "14": { "label": "Navigation and Maps", "content": {} },
-    "15": { "label": "Property Concerns", "content": {} },
-    "16": { "label": "Misinformation or Rumors", "content": {} }
+    "9": {
+      "label": "Evacuation Destinations",
+      "content": {
+        "-4": { "text": "County shelter opened at fairgrounds (pets allowed)." },
+        "-3": { "text": "Shelter filling quickly; limited space remaining." },
+        "-2": { "text": "Shelter at capacity. Alternate shelter 30 miles east." },
+        "-1": { "text": "All nearby shelters full. Consider staying with friends or family." }
+      }
+    },
+
+    "10": {
+      "label": "Emergency Personnel Presence",
+      "content": {
+        "-5": { "text": "Fire crews staged in nearby areas." },
+        "-4": { "text": "Police monitoring traffic intersections." },
+        "-3": { "text": "Fire engines visible in the neighborhood." },
+        "-2": { "text": "Emergency personnel redirected to active fire lines." },
+        "-1": { "text": "No emergency crews visible in residential streets." }
+      }
+    },
+
+    "11": {
+      "label": "Community Activity",
+      "content": {
+        "-5": { "text": "Some neighbors outside watching the smoke." },
+        "-4": { "text": "Several homes loading cars." },
+        "-3": { "text": "Many neighbors leaving; others staying." },
+        "-2": { "text": "Most homes on the street appear empty." },
+        "-1": { "text": "Only a few cars remain in the neighborhood." }
+      }
+    },
+
+    "12": {
+      "label": "Social Contact Texts",
+      "type": "social_contacts",
+      "contacts": [
+        { "id": "alex", "name": "Alex (Friend)", "response_policy": "cautious_friend" },
+        { "id": "jamie", "name": "Jamie (Neighbor)", "response_policy": "skeptical_friend" },
+        { "id": "sam", "name": "Sam (Sibling)", "response_policy": "alarmist_friend" }
+      ],
+      "content": {
+        "-6": { "text": "You can message people you know." },
+        "-5": { "text": "You can message people you know." },
+        "-4": { "text": "You can message people you know." },
+        "-3": { "text": "You can message people you know." },
+        "-2": { "text": "You can message people you know." },
+        "-1": { "text": "You can message people you know." }
+      }
+    },
+
+    "13": {
+      "label": "Transit Options",
+      "content": {
+        "-4": { "text": "Public buses running on normal schedule." },
+        "-3": { "text": "Evacuation buses announced at community center." },
+        "-2": { "text": "Limited bus capacity; long waits reported." },
+        "-1": { "text": "Bus service suspended due to road closures." }
+      }
+    },
+
+    "14": {
+      "label": "Navigation and Maps",
+      "content": {
+        "-4": { "text": "Maps show recommended evacuation routes." },
+        "-3": { "text": "Some evacuation routes flagged as congested." },
+        "-2": { "text": "Navigation apps rerouting frequently due to closures." },
+        "-1": { "text": "Multiple routes marked closed or unreliable." }
+      }
+    },
+
+    "15": {
+      "label": "Property Concerns",
+      "content": {
+        "-5": { "text": "You consider securing windows and valuables." },
+        "-4": { "text": "Concern about leaving pets or property unattended." },
+        "-3": { "text": "Worry about potential looting after evacuation." },
+        "-2": { "text": "Time pressure limits ability to prepare your home." },
+        "-1": { "text": "Forced to abandon most belongings." }
+      }
+    },
+
+    "16": {
+      "label": "Rumors",
+      "content": {
+        "-5": { "text": "Online post claims the fire is mostly contained." },
+        "-4": { "text": "Rumor circulating that evacuation orders may be downgraded." },
+        "-3": { "text": "Conflicting reports about which roads are open." },
+        "-2": { "text": "Unverified claim that the fire changed direction." },
+        "-1": { "text": "False report suggests the neighborhood is safe." }
+      }
+    }
+  },
+
+  "social_response_policies": {
+    "cautious_friend": {
+      "-6": "I heard about the fire, but it still sounds pretty far away.",
+      "-5": "It smells smoky here too. I'm watching the updates.",
+      "-4": "Some people nearby are packing, but I haven't decided yet.",
+      "-3": "Traffic is starting to look bad. If you go, sooner is probably better.",
+      "-2": "This is getting serious. I think leaving is the safer option.",
+      "-1": "You really should leave now if you haven't already."
+    },
+
+    "skeptical_friend": {
+      "-6": "Fires happen every year. I wouldn't stress yet.",
+      "-5": "Officials tend to overreact with these warnings.",
+      "-4": "I'm staying put. The fire still seems far.",
+      "-3": "Traffic is worse than the fire in my opinion.",
+      "-2": "I'm still not convinced evacuation is necessary.",
+      "-1": "If you're calm at home, staying might be fine."
+    },
+
+    "alarmist_friend": {
+      "-6": "I don't like this at all. Fires spread fast.",
+      "-5": "Smoke already worries me. I'd start getting ready.",
+      "-4": "If you wait too long, roads will be packed.",
+      "-3": "I would leave now if you can.",
+      "-2": "This is dangerous. You should be evacuating.",
+      "-1": "Please tell me you're already on your way out."
+    }
   }
 }

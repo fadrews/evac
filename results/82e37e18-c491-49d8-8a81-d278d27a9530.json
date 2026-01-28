@@ -1,0 +1,57 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T11:15:44.808204"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T11:15:45.586571"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "15",
+    "tile_label": "Property Concerns",
+    "timestamp": "2026-01-28T11:15:48.653136"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "15",
+    "duration_seconds": 2.53,
+    "timestamp": "2026-01-28T11:15:51.186687"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "14",
+    "tile_label": "Navigation and Maps",
+    "timestamp": "2026-01-28T11:15:53.159135"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "14",
+    "duration_seconds": 1.77,
+    "timestamp": "2026-01-28T11:15:54.931093"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "16",
+    "tile_label": "Misinformation or Rumors",
+    "timestamp": "2026-01-28T11:16:27.617845"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "16",
+    "duration_seconds": 2.1,
+    "timestamp": "2026-01-28T11:16:29.712661"
+  }
+]

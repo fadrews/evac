@@ -1,0 +1,104 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T10:53:58.489131"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T10:54:00.085532"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:54:04.359835"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Alex (Friend)",
+    "contact_id": "alex",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:54:15.881902"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Alex (Friend)",
+    "contact_id": "alex",
+    "response_policy": "cautious_friend",
+    "response": "I heard about the fire, but it still sounds pretty far away.",
+    "timestamp": "2026-01-28T10:54:17.093000"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:54:24.834639"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "response_policy": "skeptical_friend",
+    "response": "Fires happen every year. I wouldn't stress yet.",
+    "timestamp": "2026-01-28T10:54:26.048135"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:54:26.395255"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "response_policy": "skeptical_friend",
+    "response": "Fires happen every year. I wouldn't stress yet.",
+    "timestamp": "2026-01-28T10:54:27.606702"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Sam (Sibling)",
+    "contact_id": "sam",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:54:28.556785"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Sam (Sibling)",
+    "contact_id": "sam",
+    "response_policy": "alarmist_friend",
+    "response": "I don't like this at all. Fires spread fast.",
+    "timestamp": "2026-01-28T10:54:29.767315"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 27.98,
+    "timestamp": "2026-01-28T10:54:32.338700"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:54:34.968130"
+  }
+]

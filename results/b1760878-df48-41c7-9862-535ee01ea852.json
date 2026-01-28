@@ -1,0 +1,116 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T10:27:29.406807"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T10:27:30.456041"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:27:34.554792"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Alex (Friend)",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:27:39.560231"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Alex (Friend)",
+    "response_policy": "cautious_friend",
+    "response": "I heard about the fire, but it still sounds pretty far away.",
+    "timestamp": "2026-01-28T10:27:40.778404"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 11.42,
+    "timestamp": "2026-01-28T10:27:45.979024"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "timestamp": "2026-01-28T10:27:47.793175"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 2.94,
+    "timestamp": "2026-01-28T10:27:50.737380"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "1",
+    "tile_label": "Hazard Conditions",
+    "timestamp": "2026-01-28T10:27:51.821102"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "1",
+    "duration_seconds": 1.5,
+    "timestamp": "2026-01-28T10:27:53.319714"
+  },
+  {
+    "time_step": -6,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-28T10:27:58.058920"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:28:00.036122"
+  },
+  {
+    "time_step": -5,
+    "event": "social_message_sent",
+    "to": "Alex (Friend)",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:28:04.468580"
+  },
+  {
+    "time_step": -5,
+    "event": "social_response_received",
+    "from": "Alex (Friend)",
+    "response_policy": "cautious_friend",
+    "response": "It smells smoky here too. I'm watching the updates.",
+    "timestamp": "2026-01-28T10:28:05.686733"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 9.85,
+    "timestamp": "2026-01-28T10:28:09.888484"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T10:25:05.045719"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T10:25:06.152601"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:25:11.195388"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Alex (Friend)",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T10:25:15.164129"
+  }
+]

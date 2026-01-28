@@ -1,0 +1,43 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T10:40:59.266003"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T10:41:00.639519"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:41:04.412829"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 4.11,
+    "timestamp": "2026-01-28T10:41:08.526648"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contacts",
+    "timestamp": "2026-01-28T10:41:12.201975"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 1.84,
+    "timestamp": "2026-01-28T10:41:14.040983"
+  }
+]

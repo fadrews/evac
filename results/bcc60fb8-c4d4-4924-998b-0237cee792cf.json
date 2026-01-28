@@ -1,0 +1,216 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T11:18:20.310068"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T11:18:21.407627"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "timestamp": "2026-01-28T11:18:26.604640"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 2.96,
+    "timestamp": "2026-01-28T11:18:29.566870"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "16",
+    "tile_label": "Rumors",
+    "timestamp": "2026-01-28T11:18:30.956444"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "16",
+    "duration_seconds": 1.88,
+    "timestamp": "2026-01-28T11:18:32.834148"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "14",
+    "tile_label": "Navigation and Maps",
+    "timestamp": "2026-01-28T11:18:46.094646"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "14",
+    "duration_seconds": 2.11,
+    "timestamp": "2026-01-28T11:18:48.204508"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contact Texts",
+    "timestamp": "2026-01-28T11:19:15.443123"
+  },
+  {
+    "time_step": -6,
+    "event": "social_message_sent",
+    "to": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "message_type": "evacuation_advice",
+    "timestamp": "2026-01-28T11:19:16.937871"
+  },
+  {
+    "time_step": -6,
+    "event": "social_response_received",
+    "from": "Jamie (Neighbor)",
+    "contact_id": "jamie",
+    "response_policy": "skeptical_friend",
+    "response": "Fires happen every year. I wouldn't stress yet.",
+    "timestamp": "2026-01-28T11:19:18.151440"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 6.54,
+    "timestamp": "2026-01-28T11:19:21.986025"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "12",
+    "tile_label": "Social Contact Texts",
+    "timestamp": "2026-01-28T11:19:47.789416"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "12",
+    "duration_seconds": 3.26,
+    "timestamp": "2026-01-28T11:19:51.045121"
+  },
+  {
+    "time_step": -6,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-28T11:20:06.533539"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "15",
+    "tile_label": "Property Concerns",
+    "timestamp": "2026-01-28T11:20:08.437144"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "15",
+    "duration_seconds": 3.0,
+    "timestamp": "2026-01-28T11:20:11.438434"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "8",
+    "tile_label": "Health and Smoke",
+    "timestamp": "2026-01-28T11:20:14.024423"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "8",
+    "duration_seconds": 4.05,
+    "timestamp": "2026-01-28T11:20:18.073784"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "7",
+    "tile_label": "Household Readiness",
+    "timestamp": "2026-01-28T11:20:19.394144"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "7",
+    "duration_seconds": 3.21,
+    "timestamp": "2026-01-28T11:20:22.601472"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "6",
+    "tile_label": "Utilities and Infrastructure",
+    "timestamp": "2026-01-28T11:20:27.203963"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "6",
+    "duration_seconds": 2.12,
+    "timestamp": "2026-01-28T11:20:29.323816"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_opened",
+    "tile_id": "4",
+    "tile_label": "News Update",
+    "timestamp": "2026-01-28T11:20:30.981504"
+  },
+  {
+    "time_step": -5,
+    "event": "tile_closed",
+    "tile_id": "4",
+    "duration_seconds": 2.01,
+    "timestamp": "2026-01-28T11:20:32.992900"
+  },
+  {
+    "time_step": -5,
+    "event": "assessment",
+    "responses": {
+      "Risk perception; 0 no risk, 100 very high risk": 50,
+      "Decision time pressure; 0 no time pressure, 100 extreme time pressure": 50,
+      "Trust in official alerts; 0 no trust, 100 very high trust": 50,
+      "Anxiety level; 0 no anxiety, 100 very high anxiety": 50,
+      "Social pressure; 0 no pressure, 100 extreme social pressure": 50,
+      "Evacuation feasibility; 0 no feasibility, 100 very high feasibility": 50,
+      "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)": 50
+    },
+    "decision": "stay_for_now",
+    "timestamp": "2026-01-28T11:21:09.338906"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_opened",
+    "tile_id": "13",
+    "tile_label": "Transit Options",
+    "timestamp": "2026-01-28T11:21:11.619890"
+  },
+  {
+    "time_step": -4,
+    "event": "tile_closed",
+    "tile_id": "13",
+    "duration_seconds": 2.73,
+    "timestamp": "2026-01-28T11:21:14.353755"
+  }
+]

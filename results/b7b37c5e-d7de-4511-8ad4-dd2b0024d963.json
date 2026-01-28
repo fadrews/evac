@@ -1,0 +1,141 @@
+[
+  {
+    "time_step": -6,
+    "event": "consent",
+    "consent": true,
+    "timestamp": "2026-01-28T11:14:18.558319"
+  },
+  {
+    "time_step": -6,
+    "event": "contact_info",
+    "email": "",
+    "phone": "",
+    "timestamp": "2026-01-28T11:14:19.879308"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "14",
+    "tile_label": "Navigation and Maps",
+    "timestamp": "2026-01-28T11:14:24.158873"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "14",
+    "duration_seconds": 2.59,
+    "timestamp": "2026-01-28T11:14:26.747149"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "15",
+    "tile_label": "Property Concerns",
+    "timestamp": "2026-01-28T11:14:29.443509"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "15",
+    "duration_seconds": 2.25,
+    "timestamp": "2026-01-28T11:14:31.698475"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "13",
+    "tile_label": "Transit Options",
+    "timestamp": "2026-01-28T11:14:34.242825"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "13",
+    "duration_seconds": 1.89,
+    "timestamp": "2026-01-28T11:14:36.135732"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "14",
+    "tile_label": "Navigation and Maps",
+    "timestamp": "2026-01-28T11:15:03.185107"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "14",
+    "duration_seconds": 2.08,
+    "timestamp": "2026-01-28T11:15:05.270086"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "2",
+    "tile_label": "Official Alerts",
+    "timestamp": "2026-01-28T11:15:06.334875"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "2",
+    "duration_seconds": 2.32,
+    "timestamp": "2026-01-28T11:15:08.651167"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "7",
+    "tile_label": "Household Readiness",
+    "timestamp": "2026-01-28T11:15:09.693306"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "7",
+    "duration_seconds": 1.82,
+    "timestamp": "2026-01-28T11:15:11.514832"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "8",
+    "tile_label": "Health and Smoke",
+    "timestamp": "2026-01-28T11:15:12.659893"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "8",
+    "duration_seconds": 1.62,
+    "timestamp": "2026-01-28T11:15:14.278531"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "16",
+    "tile_label": "Misinformation or Rumors",
+    "timestamp": "2026-01-28T11:15:15.243990"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "16",
+    "duration_seconds": 1.67,
+    "timestamp": "2026-01-28T11:15:16.910940"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_opened",
+    "tile_id": "15",
+    "tile_label": "Property Concerns",
+    "timestamp": "2026-01-28T11:15:19.019893"
+  },
+  {
+    "time_step": -6,
+    "event": "tile_closed",
+    "tile_id": "15",
+    "duration_seconds": 1.8,
+    "timestamp": "2026-01-28T11:15:20.816115"
+  }
+]

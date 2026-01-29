@@ -248,15 +248,31 @@ if st.session_state.consent_given and not st.session_state.contact_collected:
 
     st.stop()
 
+
 # ======================================================
 # SCENARIO INTRO SCREEN
 # ======================================================
+
 
 if st.session_state.show_intro:
     intro = CONTROL.get("scenario_description", {})
 
     st.markdown(f"## {intro.get('title', 'Scenario')}")
+    spacer_left, col1, col2, spacer_right = st.columns([1, 2, 2, 1])
+    # Show intro images side by side
+    if "image_house" in intro and "image_map" in intro:
 
+        with col1:
+            _, img_col, _ = st.columns([1, 2, 1])
+            with img_col:
+                st.image(intro["image_house"], width=300)
+                st.caption("Your home")
+        with col2:
+            _, img_col, _ = st.columns([1, 2, 1])
+            with img_col:
+              st.image(intro["image_map"], width=300)
+              st.caption("Neighborhood map")
+    # Show intro text
     for p in intro.get("text", []):
         st.write(p)
 
@@ -265,6 +281,7 @@ if st.session_state.show_intro:
         st.rerun()
 
     st.stop()
+
 
 # ======================================================
 # SCENARIO END SCREEN (AUTO EMAIL)

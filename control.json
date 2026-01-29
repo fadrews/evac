@@ -20,9 +20,25 @@
   },
 
   "scenario_description": {
-    "title": "Wildfire Evacuation Scenario",
+    "title": "Wildfire Scenario",
+	
+	 "image_house": "images/image_home.jpg",
+	 "image_map": "images/image_map.jpg",
+	 
     "text": [
-      "You are at home during a wildfire event in your area.",
+      "You live in a single-family home in a suburban neighborhood with your partner and two children. The children",
+	  "are currently at home with the family dog. Your partner is away at work for the day, and you are working from home.",
+
+	  "Your household owns two cars. One car is with your partner, and the other is parked at home. The car at home has",
+	  "approximately one-quarter of a tank of gas remaining. A public transportation bus stop is located within walking",
+	  "distance of your home.",
+
+	"There has never been a wildfire in your immediate area before, and you have not previously needed to evacuate due",
+	"to fire. Your home is not specially prepared or hardened for wildfire risk (for example, there is limited defensible",
+	"space around the structure).",
+
+     "At the start of the scenario, daily activities are proceeding normally. You are responsible for decisions affecting",
+	 "yourself, your children, and your pet during the unfolding situation.",
       "Over the next several hours, conditions may worsen.",
       "You will receive information from different sources.",
       "At each stage, review the available information and decide what you would do."

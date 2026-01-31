@@ -1,30 +1,37 @@
+# v2.3 - Optimized UI
+
 import streamlit as st
 import json
-import time
 import datetime
 from datetime import timedelta
 import uuid
 import os
-st.write("CONTROL FILE LOADED FROM:", os.path.abspath("control.json"))
-
-
-# >>> ADDED IMPORTS (EMAIL)
 import smtplib
 import ssl
 from email.message import EmailMessage
 from pathlib import Path
-# <<< END ADDED IMPORTS
+
+# Set wide layout for more display space
+st.set_page_config(layout="wide")
+
 
 # ======================================================
-# LOAD CONTROL FILE
+# 1. LOAD CONTROL FILE
 # ======================================================
+@st.cache_data
+def load_control():
+    if not os.path.exists("control.json"):
+        st.error("Error: 'control.json' not found.")
+        st.stop()
+    with open("control.json", "r") as f:
+        return json.load(f)
 
-with open("control.json", "r") as f:
-    CONTROL = json.load(f)
 
-TITLE = CONTROL["title"]
-TIME_STEPS = CONTROL["time_steps"]
-TILES = CONTROL["tiles"]
+CONTROL = load_control()
+TITLE = CONTROL.get("title", "Research Scenario")
+TIME_STEPS = CONTROL.get("time_steps", [])
+TILES = CONTROL.get("tiles", {})
+PREP_ACTIONS = CONTROL.get("preparation_actions", [])
 
 SUBJECTIVE_VARS = [
     "Risk perception; 0 no risk, 100 very high risk",
@@ -33,72 +40,170 @@ SUBJECTIVE_VARS = [
     "Anxiety level; 0 no anxiety, 100 very high anxiety",
     "Social pressure; 0 no pressure, 100 extreme social pressure",
     "Evacuation feasibility; 0 no feasibility, 100 very high feasibility",
-    "Decision leaning; 0-50 leaning towards stay 51-100 leaning towards evacuate)",
+    "Decision leaning; 0–50 leaning stay, 51–100 leaning evacuate"
 ]
 
-# ======================================================
-# SESSION STATE
-# ======================================================
-
-if "session_id" not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())
-
-if "consent_given" not in st.session_state:
-    st.session_state.consent_given = False
-
-if "contact_collected" not in st.session_state:
-    st.session_state.contact_collected = False
-
-if "participant_info" not in st.session_state:
-    st.session_state.participant_info = {}
-
-if "show_intro" not in st.session_state:
-    st.session_state.show_intro = True
-
-if "time_index" not in st.session_state:
-    st.session_state.time_index = 0
-    st.session_state.open_tile = None
-    st.session_state.tile_open_time = None
-    st.session_state.awaiting_assessment = False
-    st.session_state.tiles_opened_this_step = set()
-    st.session_state.logs = []
-    st.session_state.slider_seed = 0
-    st.session_state.scenario_ended = False
-    st.session_state.family_evacuated = False
-
-# >>> ADDED SESSION FLAG (EMAIL)
-if "results_emailed" not in st.session_state:
-    st.session_state.results_emailed = False
-# <<< END ADDED FLAG
-
-CURRENT_TIME = TIME_STEPS[st.session_state.time_index]
 
 # ======================================================
-# LOGGING (AUTO SAVE)
+# 2. SESSION STATE INITIALIZATION
 # ======================================================
+def init_state():
+    if "session_id" not in st.session_state:
+        st.session_state.session_id = str(uuid.uuid4())
+        st.session_state.logs = []
 
-LOG_DIR = "results"
-os.makedirs(LOG_DIR, exist_ok=True)
+        # flow
+        st.session_state.consent_given = False
+        st.session_state.contact_collected = False
+        st.session_state.show_intro = True
+        st.session_state.scenario_ended = False
 
-def save_logs():
-    path = os.path.join(LOG_DIR, f"{st.session_state.session_id}.json")
-    with open(path, "w") as f:
-        json.dump(st.session_state.logs, f, indent=2)
+        # time
+        st.session_state.time_index = 0
 
+        # dashboard
+        st.session_state.open_tile = None
+        st.session_state.tiles_opened_this_step = set()
+        st.session_state.viewed_updates = set()
+        st.session_state.dashboard_start_time = datetime.datetime.now()
+
+        # phase flags
+        st.session_state.in_assessment = False
+        st.session_state.in_decision = False
+
+        # timing
+        st.session_state.assessment_start_time = None
+        st.session_state.decision_start_time = None
+        st.session_state.tile_open_time = None
+        st.session_state.current_tile_id = None
+
+        # social timing
+        st.session_state.current_social_contact = None
+        st.session_state.social_open_time = None
+
+        # assessment cache
+        st.session_state.cached_assessment = None
+
+        # preparation
+        st.session_state.completed_prep_actions = set()
+
+
+init_state()
+
+st.markdown("""
+<style>
+/* Uniform tile styling */
+.stButton > button {
+    width: 100% !important;
+    height: 60px !important;
+    padding: 12px !important;
+    text-align: left !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Make columns equal width */
+div[data-testid="column"] {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* Style close button */
+button[kind="secondary"]:has-text("Close") {
+    background-color: #ff4b4b !important;
+    color: white !important;
+    border: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+CURRENT_TIME_VAL = (
+    TIME_STEPS[st.session_state.time_index]
+    if st.session_state.time_index < len(TIME_STEPS)
+    else None
+)
+
+
+# ======================================================
+# 3. LOGGING
+# ======================================================
 def log_event(event, payload):
     st.session_state.logs.append({
-        "time_step": CURRENT_TIME,
+        "time_step": CURRENT_TIME_VAL,
         "event": event,
         **payload,
         "timestamp": datetime.datetime.now().isoformat()
     })
-    save_logs()
+    os.makedirs("results", exist_ok=True)
+    with open(f"results/{st.session_state.session_id}.json", "w") as f:
+        json.dump(st.session_state.logs, f, indent=2)
+
 
 # ======================================================
-# EMAIL RESULTS (AUTO)
+# 4. HELPERS
 # ======================================================
+def close_current_tile():
+    """Helper function to log timing when switching tiles"""
+    if st.session_state.current_tile_id:
+        log_event(
+            "tile_time_spent",
+            {
+                "id": st.session_state.current_tile_id,
+                "duration_seconds": (
+                        datetime.datetime.now() - st.session_state.tile_open_time
+                ).total_seconds()
+            }
+        )
+    if st.session_state.current_social_contact:
+        log_event(
+            "social_message_time_spent",
+            {
+                "contact": st.session_state.current_social_contact,
+                "duration_seconds": (
+                        datetime.datetime.now() - st.session_state.social_open_time
+                ).total_seconds()
+            }
+        )
+
+
+def has_new_update(tid):
+    if st.session_state.time_index == 0:
+        return True
+    curr = TILES[tid]["content"].get(str(CURRENT_TIME_VAL))
+    prev = TILES[tid]["content"].get(
+        str(TIME_STEPS[st.session_state.time_index - 1])
+    )
+    return curr != prev
+
+
+def is_end_of_time_window():
+    start = datetime.datetime.strptime(
+        CONTROL.get("start_time_display", "14:00"), "%H:%M"
+    )
+    current = start + timedelta(hours=st.session_state.time_index)
+    return current.hour >= 20
+
+
+def get_time_label():
+    start = datetime.datetime.strptime(
+        CONTROL.get("start_time_display", "14:00"), "%H:%M"
+    )
+    return (start + timedelta(hours=st.session_state.time_index)).strftime("%I:%M %p")
+
+
+def prep_available(action):
+    return (
+            CURRENT_TIME_VAL is not None and
+            action["available_from"] <= CURRENT_TIME_VAL <= action["available_until"]
+    )
+
 
 def email_results_file(results_path):
+    """Send results file via email"""
     sender_email = "fadrews@gmail.com"
     sender_app_password = "spsu jamp ozlb pjue"
     recipient_email = "fadrews@gmail.com"
@@ -129,341 +234,294 @@ def email_results_file(results_path):
         server.login(sender_email, sender_app_password)
         server.send_message(msg)
 
-# ======================================================
-# HELPERS
-# ======================================================
-
-def display_time_label(time_index):
-    start_time_str = CONTROL.get("start_time_display", "14:00")
-    start_time = datetime.datetime.strptime(start_time_str, "%H:%M")
-    current_time = start_time + timedelta(hours=time_index)
-
-    hour = current_time.strftime("%I").lstrip("0") or "12"
-    minute = current_time.strftime("%M")
-    ampm = current_time.strftime("%p")
-
-    return f"{hour}:{minute} {ampm}"
-
-def get_tile_content(tile_id):
-    return TILES[tile_id]["content"].get(str(CURRENT_TIME))
-
-def tile_has_update_or_content(tile_id):
-    current = TILES[tile_id]["content"].get(str(CURRENT_TIME))
-
-    if st.session_state.time_index == 0:
-        return current is not None
-
-    prev_time = TIME_STEPS[st.session_state.time_index - 1]
-    previous = TILES[tile_id]["content"].get(str(prev_time))
-
-    return current != previous
-
-def get_social_response(policy_name):
-    """
-    Returns a deterministic social contact response
-    based on the current time step and policy name.
-    """
-    policies = CONTROL.get("social_response_policies", {})
-    policy = policies.get(policy_name, {})
-
-    return policy.get(str(CURRENT_TIME), "No response received.")
 
 # ======================================================
-# PAGE SETUP + CSS
+# 5. CONSENT / CONTACT / INTRO
 # ======================================================
-
-st.set_page_config(layout="wide")
-
-st.markdown(
-    """
-    <style>
-    div[data-testid="column"] button {
-        height: 110px !important;
-        width: 100% !important;
-        font-size: 15px !important;
-        padding: 10px !important;
-        margin: 0 !important;
-        display: -webkit-box !important;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-align: center;
-    }
-    button[aria-label="Close"] {
-        display: none !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# ======================================================
-# IRB CONSENT SCREEN
-# ======================================================
-
 if not st.session_state.consent_given:
-    irb = CONTROL.get("irb_consent", {})
-
-    st.markdown(f"## {irb.get('title', 'Consent')}")
-
-    for p in irb.get("text", []):
+    st.header(CONTROL["irb_consent"]["title"])
+    for p in CONTROL["irb_consent"]["text"]:
         st.write(p)
-
-    read_ok = st.checkbox("I have read and understood the information above.")
-    consent_ok = st.checkbox("I consent to participate in this study.")
-
-    if st.button("Continue"):
-        if read_ok and consent_ok:
+    if st.checkbox("I have read the information.") and st.checkbox("I consent to participate."):
+        if st.button("Proceed"):
             st.session_state.consent_given = True
-            log_event("consent", {"consent": True})
+            log_event("consent_accepted", {})
             st.rerun()
-        else:
-            st.warning("Consent is required to continue.")
-
     st.stop()
 
-# ======================================================
-# CONTACT INFORMATION SCREEN
-# ======================================================
-
-if st.session_state.consent_given and not st.session_state.contact_collected:
-    contact_cfg = CONTROL.get("contact_screen", {})
-
-    st.markdown(f"## {contact_cfg.get('title', 'Contact Information')}")
-
-    for p in contact_cfg.get("text", []):
+if not st.session_state.contact_collected:
+    st.header(CONTROL["contact_screen"]["title"])
+    for p in CONTROL["contact_screen"]["text"]:
         st.write(p)
-
     email = st.text_input("Email (optional)")
-    phone = st.text_input("Phone number (optional)")
-
+    phone = st.text_input("Phone (optional)")
     if st.button("Continue"):
-        st.session_state.participant_info = {
-            "email": email,
-            "phone": phone
-        }
-        log_event("contact_info", st.session_state.participant_info)
         st.session_state.contact_collected = True
+        log_event("contact_collected", {"email": email, "phone": phone})
         st.rerun()
-
     st.stop()
-
-
-# ======================================================
-# SCENARIO INTRO SCREEN
-# ======================================================
-
 
 if st.session_state.show_intro:
-    intro = CONTROL.get("scenario_description", {})
-
-    st.markdown(f"## {intro.get('title', 'Scenario')}")
-    spacer_left, col1, col2, spacer_right = st.columns([1, 2, 2, 1])
-    # Show intro images side by side
-    if "image_house" in intro and "image_map" in intro:
-
-        with col1:
-            _, img_col, _ = st.columns([1, 2, 1])
-            with img_col:
-                st.image(intro["image_house"], width=300)
-                st.caption("Your home")
-        with col2:
-            _, img_col, _ = st.columns([1, 2, 1])
-            with img_col:
-              st.image(intro["image_map"], width=300)
-              st.caption("Neighborhood map")
-    # Show intro text
-    for p in intro.get("text", []):
+    intro = CONTROL["scenario_description"]
+    st.header(intro["title"])
+    c1, c2 = st.columns(2)
+    if "image_house" in intro:
+        c1.image(intro["image_house"])
+    if "image_map" in intro:
+        c2.image(intro["image_map"])
+    for p in intro["text"]:
         st.write(p)
-
-    if st.button("BEGIN"):
+    if st.button("Start Scenario"):
         st.session_state.show_intro = False
+        log_event("scenario_started", {})
         st.rerun()
-
-    st.stop()
-
-
-# ======================================================
-# SCENARIO END SCREEN (AUTO EMAIL)
-# ======================================================
-
-if st.session_state.scenario_ended:
-    st.markdown("## Scenario Complete")
-    st.write("You have chosen to evacuate. This ends the scenario.")
-
-    results_path = os.path.join(
-        LOG_DIR, f"{st.session_state.session_id}.json"
-    )
-
-    if not st.session_state.results_emailed:
-        try:
-            email_results_file(results_path)
-            log_event("results_emailed", {"recipient": "fadrews@gmail.com"})
-            st.session_state.results_emailed = True
-        except Exception as e:
-            log_event("results_email_failed", {"error": str(e)})
-
     st.stop()
 
 # ======================================================
-# MAIN HEADER
+# 6. ASSESSMENT SCREEN
 # ======================================================
+if st.session_state.in_assessment:
+    st.subheader("Situation Assessment")
 
-st.title(TITLE)
-st.subheader(f"Time: {display_time_label(st.session_state.time_index)}")
-st.markdown("---")
-
-# ======================================================
-# TILE GRID
-# ======================================================
-
-if not st.session_state.awaiting_assessment:
-    cols = st.columns(4)
-
-    for i in range(1, 17):
-        tile_id = str(i)
-        label = TILES[tile_id]["label"] if tile_id in TILES else f"Tile {i}"
-
-        with cols[(i - 1) % 4]:
-            if st.button(f"{i}. {label}", key=f"tile_{i}_{CURRENT_TIME}"):
-                st.session_state.open_tile = tile_id
-                st.session_state.tile_open_time = time.time()
-                st.session_state.tiles_opened_this_step.add(tile_id)
-
-                log_event(
-                    "tile_opened",
-                    {
-                        "tile_id": tile_id,
-                        "tile_label": label
-                    }
-                )
-
-# ======================================================
-# TILE POPUP
-# ======================================================
-
-if st.session_state.open_tile:
-    tile_id = st.session_state.open_tile
-    tile = TILES[tile_id]
-    content = get_tile_content(tile_id)
-
-    @st.dialog(tile["label"])
-    def tile_modal():
-
-        # ---- SOCIAL CONTACTS TILE ----
-        if tile.get("type") == "social_contacts":
-            contacts = tile.get("contacts", [])
-#            st.write("You can send a message to:")
-#            st.write("DEBUG contacts =", contacts)
-            for contact in contacts:
-                name = contact["name"]
-                policy = contact["response_policy"]
-                contact_id = contact["id"]
-
-                if st.button(f"Text {name}", key=f"contact_{contact_id}_{CURRENT_TIME}"):
-
-                    log_event(
-                        "social_message_sent",
-                        {
-                            "to": name,
-                            "contact_id": contact_id,
-                            "message_type": "evacuation_advice"
-                        }
-                    )
-
-                    time.sleep(1.2)
-
-                    response = get_social_response(policy)
-
-                    st.info(f"{name} replies:\n\n{response}")
-
-                    log_event(
-                        "social_response_received",
-                        {
-                            "from": name,
-                            "contact_id": contact_id,
-                            "response_policy": policy,
-                            "response": response
-                        }
-                    )
-
-        # ---- STANDARD TILE ----
-        else:
-            if content:
-                st.write(content.get("text", ""))
-                if "image" in content:
-                    st.image(content["image"], width=500)
-            else:
-                st.info("No information available.")
-
-        if st.button("Close"):
-            duration = round(time.time() - st.session_state.tile_open_time, 2)
-            log_event("tile_closed", {"tile_id": tile_id, "duration_seconds": duration})
-            st.session_state.open_tile = None
-            st.session_state.tile_open_time = None
-            st.rerun()
-
-    tile_modal()
-
-# ======================================================
-# PROCEED BUTTON
-# ======================================================
-
-if not st.session_state.awaiting_assessment and st.session_state.open_tile is None:
-    st.button(
-        "Proceed",
-        disabled=len(st.session_state.tiles_opened_this_step) == 0,
-        on_click=lambda: setattr(st.session_state, "awaiting_assessment", True)
-    )
-
-# ======================================================
-# ASSESSMENT + DECISIONS
-# ======================================================
-
-if st.session_state.awaiting_assessment:
-    st.markdown("## Assessment")
-
-    responses = {
-        var: st.slider(var, 0, 100, 50, step=1, key=f"{var}_{st.session_state.slider_seed}")
-        for var in SUBJECTIVE_VARS
+    results = {
+        v: st.slider(v, 0, 100, 50)
+        for v in SUBJECTIVE_VARS
     }
 
-    st.markdown("### Decision")
+    if st.button("Continue to Decisions"):
+        log_event(
+            "assessment_time_spent",
+            {"duration_seconds": (datetime.datetime.now() - st.session_state.assessment_start_time).total_seconds()}
+        )
+        st.session_state.cached_assessment = results
+        st.session_state.in_assessment = False
+        st.session_state.in_decision = True
+        st.session_state.decision_start_time = datetime.datetime.now()
+        st.rerun()
+    st.stop()
 
-    decision = None
-    col1, col2, col3 = st.columns(3)
+# ======================================================
+# 7. DECISION SCREEN (PREPARATION + EVACUATION)
+# ======================================================
+if st.session_state.in_decision:
+    st.subheader(f"Decisions — {get_time_label()}")
 
-    with col1:
-        if st.button("Evacuate now, including family members if still present"):
-            decision = "evacuate_everyone_now"
+    st.markdown("### Preparation actions")
 
-    with col2:
-        if not st.session_state.family_evacuated:
-            if st.button("Evacuate family only"):
-                decision = "evacuate_family_only"
+    for action in PREP_ACTIONS:
+        if not prep_available(action):
+            continue
 
-    with col3:
-        if st.button("Stay for now"):
-            decision = "stay_for_now"
+        completed = action["id"] in st.session_state.completed_prep_actions
+        col1, col2, col3 = st.columns([4, 1, 1])
 
-    if decision:
-        log_event("assessment", {"responses": responses, "decision": decision})
+        with col1:
+            st.write(f"**{action['label']}**")
+            st.caption(action["description"])
 
-        if decision == "evacuate_everyone_now":
-            st.session_state.scenario_ended = True
-            st.session_state.awaiting_assessment = False
-            st.rerun()
-            st.stop()
+        with col2:
+            st.write(f"{action['estimated_time_minutes']} min")
 
-        if decision == "evacuate_family_only":
-            st.session_state.family_evacuated = True
+        with col3:
+            if completed:
+                st.write("Completed")
+            else:
+                if st.button("Do", key=f"prep_{action['id']}"):
+                    st.session_state.completed_prep_actions.add(action["id"])
+                    log_event(
+                        "prep_action_completed",
+                        {
+                            "action_id": action["id"],
+                            "estimated_time_minutes": action["estimated_time_minutes"]
+                        }
+                    )
+                    st.rerun()
 
-        st.session_state.slider_seed += 1
-        st.session_state.awaiting_assessment = False
-        st.session_state.tiles_opened_this_step.clear()
+    st.divider()
+
+    st.markdown("### Evacuation decision")
+
+    evac_all = st.button("Evacuate all")
+    evac_fam = st.button("Evacuate family only")
+    stay = st.button("Stay and monitor")
+
+    if evac_all or evac_fam or stay:
+        log_event(
+            "decision_time_spent",
+            {"duration_seconds": (datetime.datetime.now() - st.session_state.decision_start_time).total_seconds()}
+        )
+
+        choice = "stay"
+        if evac_all:
+            choice = "evacuate_all"
+        if evac_fam:
+            choice = "evacuate_family"
+
+        log_event(
+            "hourly_decision",
+            {
+                "scores": st.session_state.cached_assessment,
+                "choice": choice,
+                "completed_prep_actions": list(st.session_state.completed_prep_actions)
+            }
+        )
+
+        st.session_state.in_decision = False
+        st.session_state.cached_assessment = None
         st.session_state.time_index += 1
+        if is_end_of_time_window():
+            st.session_state.scenario_ended = True
+        st.session_state.dashboard_start_time = datetime.datetime.now()
+        st.session_state.tiles_opened_this_step.clear()
+        st.session_state.viewed_updates.clear()
 
-        if st.session_state.time_index >= len(TIME_STEPS):
+        if choice in ["evacuate_all", "evacuate_family"]:
             st.session_state.scenario_ended = True
 
         st.rerun()
+    st.stop()
+
+# ======================================================
+# SCENARIO END HANDLING
+# ======================================================
+if st.session_state.scenario_ended:
+    st.header("Scenario Complete")
+    st.success("Thank you for participating in this evacuation scenario!")
+
+    # Email results
+    results_file = f"results/{st.session_state.session_id}.json"
+    try:
+        email_results_file(results_file)
+        st.info("✅ Your results have been automatically sent.")
+    except Exception as e:
+        st.error(f"Note: Could not send results email. Error: {e}")
+
+    st.write("You may now close this window.")
+    st.stop()
+
+# ======================================================
+# 8. MAIN DASHBOARD
+# ======================================================
+st.header(f"{TITLE} — {get_time_label()}")
+
+# Display information panel at TOP if tile is open
+if st.session_state.open_tile:
+    tile = TILES[st.session_state.open_tile]
+    content = tile["content"].get(str(CURRENT_TIME_VAL))
+
+    # Information panel with prominent styling
+    st.markdown(f"""
+    <div style="background: white; border: 3px solid #0066cc; border-radius: 8px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <h4 style="margin-top: 0; margin-bottom: 15px; color: #0066cc; font-size: 18px;">{tile['label']}</h4>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Display content with larger font
+    if tile.get("type") == "social_contacts":
+        for c in tile["contacts"]:
+            if st.button(f"Message {c['name']}", key=f"soc_{c['id']}", use_container_width=True):
+                if st.session_state.current_social_contact:
+                    log_event(
+                        "social_message_time_spent",
+                        {
+                            "contact": st.session_state.current_social_contact,
+                            "duration_seconds": (
+                                    datetime.datetime.now() - st.session_state.social_open_time
+                            ).total_seconds()
+                        }
+                    )
+                reply = CONTROL["social_response_policies"][c["response_policy"]][str(CURRENT_TIME_VAL)]
+                st.session_state.current_social_contact = c["name"]
+                st.session_state.social_open_time = datetime.datetime.now()
+                log_event("social_message_opened", {"contact": c["name"]})
+                log_event("social_interaction", {"to": c["name"], "reply": reply})
+                st.info(reply)
+    else:
+        if content is not None:
+            if "text" in content:
+                st.markdown(f'<div style="font-size: 16px; line-height: 1.6; color: #333;">{content["text"]}</div>',
+                            unsafe_allow_html=True)
+            if "image" in content:
+                st.image(content["image"])
+        else:
+            st.markdown('<div style="font-size: 16px; color: #666;">No information available at this time.</div>',
+                        unsafe_allow_html=True)
+
+    # Close button - prominent red styling
+    if st.button("Close", key="close_modal", use_container_width=False):
+        # Log time for currently open tile/contact before closing
+        close_current_tile()
+
+        st.session_state.open_tile = None
+        st.session_state.current_tile_id = None
+        st.session_state.tile_open_time = None
+        st.session_state.current_social_contact = None
+        st.session_state.social_open_time = None
+        st.rerun()
+
+    st.divider()
+
+# Display tile grid
+st.subheader("Information Sources")
+
+# Create 4 rows of 4 tiles each
+for row in range(4):
+    cols = st.columns(4)
+    for col_idx in range(4):
+        tile_num = row * 4 + col_idx + 1
+        if tile_num > 16:
+            break
+
+        tid = str(tile_num)
+        label = TILES[tid]["label"]
+
+        is_new = has_new_update(tid) and tid not in st.session_state.viewed_updates
+        text = label
+
+        with cols[col_idx]:
+            if st.button(text, key=f"tile_{tid}_{st.session_state.time_index}", use_container_width=True):
+                # Log time for previously open tile/contact before switching
+                close_current_tile()
+
+                # Open new tile
+                st.session_state.open_tile = tid
+                st.session_state.current_tile_id = tid
+                st.session_state.tile_open_time = datetime.datetime.now()
+                st.session_state.tiles_opened_this_step.add(tid)
+                st.session_state.viewed_updates.add(tid)
+
+                # Reset social contact tracking
+                st.session_state.current_social_contact = None
+                st.session_state.social_open_time = None
+
+                log_event("tile_viewed", {"id": tid, "label": label})
+                st.rerun()
+
+# ======================================================
+# 9. TRANSITION TO ASSESSMENT
+# ======================================================
+st.divider()
+
+if st.button("Go to Assessment", disabled=len(st.session_state.tiles_opened_this_step) == 0, use_container_width=True):
+    # Log time for currently open tile/contact before transitioning
+    close_current_tile()
+
+    log_event(
+        "dashboard_time_spent",
+        {
+            "duration_seconds": (
+                    datetime.datetime.now()
+                    - st.session_state.dashboard_start_time
+            ).total_seconds()
+        }
+    )
+    st.session_state.in_assessment = True
+    st.session_state.assessment_start_time = datetime.datetime.now()
+
+    # Reset tile/contact tracking
+    st.session_state.current_tile_id = None
+    st.session_state.tile_open_time = None
+    st.session_state.current_social_contact = None
+    st.session_state.social_open_time = None
+
+    st.rerun()

@@ -27,7 +27,7 @@
 	 
     "text": [
       "You live in a single-family home in a suburban neighborhood with your partner and two children. The children",
-	  "are currently at home with the family dog. Your partner is away at work for the day, and you are working from home.",
+	  "(10 and 13 years old) are currently at home with the family dog. Your partner is traveling and can't be reached.",
 
 	  "Your household owns two cars. One car is with your partner, and the other is parked at home. The car at home has",
 	  "approximately one-quarter of a tank of gas remaining. A public transportation bus stop is located within walking",
@@ -39,9 +39,9 @@
 
      "At the start of the scenario, daily activities are proceeding normally. You are responsible for decisions affecting",
 	 "yourself, your children, and your pet during the unfolding situation.",
-      "Over the next several hours, conditions may worsen.",
-      "You will receive information from different sources.",
-      "At each stage, review the available information and decide what you would do."
+      "Over the next several hours, conditions may worsen or improve.",
+      "You will be able to receive information from different sources.",
+      "At each stage, review the available information and decide what you would do to deal with the situation."
     ]
   },
 
@@ -83,7 +83,7 @@
   },
   {
     "id": "check_on_others",
-    "label": "Check on household members or neighbors",
+    "label": "Check on household members / neighbors",
     "description": "Contact or speak with others to confirm they are aware of the situation and prepared.",
     "available_from": -6,
     "available_until": -3,
@@ -100,7 +100,7 @@
   {
     "id": "load_vehicle",
     "label": "Load vehicle",
-    "description": "Load the car with people, pets, and belongings, and position it for departure.",
+    "description": "Load the car with kids, pet, and belongings, and position it for departure.",
     "available_from": -5,
     "available_until": -2,
     "estimated_time_minutes": 15
@@ -151,13 +151,13 @@
     },
 
     "3": {
-      "label": "Received Text Messages",
+      "label": "Social Contacts Messages",
       "content": {
-        "-5": { "text": "Neighbor: Smells smoky outside." },
-        "-4": { "text": "Neighbor: Packing just in case." },
-        "-3": { "text": "Family: Are you thinking of leaving?" },
-        "-2": { "text": "Friend: Traffic is getting bad." },
-        "-1": { "text": "Neighbor: We just left." }
+        "-5": { "text": "Neighbor Mary: Smells smoky outside." },
+        "-4": { "text": "Neighbor Joe: Packing just in case." },
+        "-3": { "text": "Neighbor Amy: Are you thinking of leaving?" },
+        "-2": { "text": "Neighbor Tom: Traffic is getting bad." },
+        "-1": { "text": "Neighbor Amy: We just left." }
       }
     },
 
@@ -250,11 +250,11 @@
     },
 
     "12": {
-      "label": "Social Contact Texts",
+      "label": "Close Contact Messaging",
       "type": "social_contacts",
       "contacts": [
         { "id": "alex", "name": "Alex (Friend)", "response_policy": "cautious_friend" },
-        { "id": "jamie", "name": "Jamie (Neighbor)", "response_policy": "skeptical_friend" },
+        { "id": "jamie", "name": "Jamie (Friend)", "response_policy": "skeptical_friend" },
         { "id": "sam", "name": "Sam (Sibling)", "response_policy": "alarmist_friend" }
       ],
       "content": {
@@ -305,7 +305,7 @@
         "-4": { "text": "Rumor circulating that evacuation orders may be downgraded." },
         "-3": { "text": "Conflicting reports about which roads are open." },
         "-2": { "text": "Unverified claim that the fire changed direction." },
-        "-1": { "text": "False report suggests the neighborhood is safe." }
+        "-1": { "text": "Report suggests the neighborhood is safe." }
       }
     }
   },

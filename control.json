@@ -48,6 +48,82 @@
   "start_time_display": "14:00",
   "time_steps": [-6, -5, -4, -3, -2, -1, 0],
 
+"preparation_actions": [
+  {
+    "id": "gather_belongings",
+    "label": "Gather important belongings",
+    "description": "Collect essential documents, medications, chargers, valuables, and personal items.",
+    "available_from": -5,
+    "available_until": -2,
+    "estimated_time_minutes": 25
+  },
+  {
+    "id": "prepare_children",
+    "label": "Prepare children",
+    "description": "Explain the situation to your children, help them pack clothes and comfort items, and ensure they are ready to leave.",
+    "available_from": -5,
+    "available_until": -1,
+    "estimated_time_minutes": 20
+  },
+  {
+    "id": "prepare_dog",
+    "label": "Prepare dog",
+    "description": "Locate your dog, prepare a leash or carrier, and gather food, water, and supplies.",
+    "available_from": -5,
+    "available_until": -1,
+    "estimated_time_minutes": 10
+  },
+  {
+    "id": "secure_home",
+    "label": "Secure home",
+    "description": "Close windows and doors, turn off appliances if needed, and make quick efforts to reduce property risk.",
+    "available_from": -5,
+    "available_until": -3,
+    "estimated_time_minutes": 15
+  },
+  {
+    "id": "check_on_others",
+    "label": "Check on household members or neighbors",
+    "description": "Contact or speak with others to confirm they are aware of the situation and prepared.",
+    "available_from": -6,
+    "available_until": -3,
+    "estimated_time_minutes": 10
+  },
+  {
+    "id": "seek_information",
+    "label": "Seek additional information",
+    "description": "Monitor official alerts, news, and maps to better understand the situation.",
+    "available_from": -6,
+    "available_until": -1,
+    "estimated_time_minutes": 15
+  },
+  {
+    "id": "load_vehicle",
+    "label": "Load vehicle",
+    "description": "Load the car with people, pets, and belongings, and position it for departure.",
+    "available_from": -5,
+    "available_until": -2,
+    "estimated_time_minutes": 15
+  },
+  {
+    "id": "fill_gas_tank",
+    "label": "Fill car with gas",
+    "description": "Drive to a gas station and fill the car’s fuel tank.",
+    "available_from": -6,
+    "available_until": -4,
+    "estimated_time_minutes": 30
+  },
+  {
+    "id": "arrange_destination",
+    "label": "Arrange evacuation destination",
+    "description": "Identify where you would go if evacuating, such as a shelter, hotel, or friend’s home.",
+    "available_from": -4,
+    "available_until": -2,
+    "estimated_time_minutes": 15
+  }
+],
+
+
   "tiles": {
     "1": {
       "label": "Hazard Conditions",
@@ -99,7 +175,7 @@
     "5": {
       "label": "Traffic and Roads",
       "content": {
-        "-6": { "text": "Roads are clear and traffic is normal." },
+        "-6": { "text": "Roads are clear and traffic is normal.", "image": "images/normal_traffic.jpg" },
         "-4": { "text": "Light congestion reported on main routes." },
         "-3": { "text": "Stop and go traffic on evacuation routes." },
         "-2": { "text": "Heavy congestion and multiple road closures." },
@@ -133,7 +209,7 @@
     "8": {
       "label": "Health and Smoke",
       "content": {
-        "-5": { "text": "Air quality advisory issued." },
+        "-5": { "text": "Air quality advisory issued.", "image": "images/smoke_health.jpg" },
         "-4": { "text": "Smoke causing mild irritation." },
         "-3": { "text": "Coughing and reduced visibility reported." },
         "-2": { "text": "Unhealthy air conditions outdoors." },

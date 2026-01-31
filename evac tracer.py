@@ -143,6 +143,29 @@ def log_event(event, payload):
         json.dump(st.session_state.logs, f, indent=2)
 
 
+def email_results_file():
+    results_path = Path(f"results/{st.session_state.session_id}.json")
+    if not results_path.exists(): return
+
+    # Access secrets
+    sender_email = st.secrets.get("SENDER_EMAIL", "fadrews@gmail.com")
+    password = st.secrets.get("EMAIL_PASSWORD", "spsu jamp ozlb pjue")  # Fallback for dev
+
+    msg = EmailMessage()
+    msg["Subject"] = f"Wildfire Scenario Results - {st.session_state.session_id}"
+    msg["From"] = sender_email
+    msg["To"] = sender_email
+    msg.set_content(f"Results attached for session: {st.session_state.session_id}")
+
+    with open(results_path, "rb") as f:
+        msg.add_attachment(f.read(), maintype="application", subtype="json", filename=results_path.name)
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(sender_email, password)
+        server.send_message(msg)
+
+
 # ======================================================
 # 4. HELPERS
 # ======================================================
@@ -342,8 +365,8 @@ if st.session_state.in_decision:
     st.markdown("### Evacuation decision")
 
     evac_all = st.button("Evacuate all")
-    evac_fam = st.button("Evacuate family only")
-    stay = st.button("Stay and monitor")
+    evac_fam = st.button("Evacuate kids with Neighbor")
+    stay = st.button("Stay")
 
     if evac_all or evac_fam or stay:
         log_event(
@@ -398,6 +421,9 @@ if st.session_state.scenario_ended:
 
     st.write("You may now close this window.")
     st.stop()
+
+
+
 
 # ======================================================
 # 8. MAIN DASHBOARD

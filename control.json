@@ -1,6 +1,5 @@
 {
-  "title": "Wildfire Evacuation",
-
+  "title": "Decision making",
   "irb_consent": {
     "title": "Research Study Information",
     "text": [
@@ -10,7 +9,6 @@
       "This study involves reviewing information and making decisions in a simulated wildfire scenario."
     ]
   },
-
   "contact_screen": {
     "title": "Contact Information (Optional)",
     "text": [
@@ -18,298 +16,516 @@
       "Providing contact information is optional and not required to participate."
     ]
   },
-
   "scenario_description": {
-    "title": "Wildfire Scenario",
-	
-	 "image_house": "images/image_home.jpg",
-	 "image_map": "images/image_map.jpg",
-	 
+    "title": "Scenario",
+    "image_house": "images/image_home.jpg",
+    "image_map": "images/image_map.jpg",
     "text": [
       "You live in a single-family home in a suburban neighborhood with your partner and two children. The children",
-	  "(10 and 13 years old) are currently at home with the family dog. Your partner is traveling and can't be reached.",
-
-	  "Your household owns two cars. One car is with your partner, and the other is parked at home. The car at home has",
-	  "approximately one-quarter of a tank of gas remaining. A public transportation bus stop is located within walking",
-	  "distance of your home.",
-
-	"There has never been a wildfire in your immediate area before, and you have not previously needed to evacuate due",
-	"to fire. Your home is not specially prepared or hardened for wildfire risk (for example, there is limited defensible",
-	"space around the structure).",
-
-     "At the start of the scenario, daily activities are proceeding normally. You are responsible for decisions affecting",
-	 "yourself, your children, and your pet during the unfolding situation.",
+      "(10 and 13 years old) are currently at home with the family dog. Your partner is traveling and can't be reached.",
+      "Your household owns two cars. One car is with your partner, and the other is parked at home. The car at home has",
+      "approximately one-quarter of a tank of gas remaining. A public transportation bus stop is located within walking",
+      "distance of your home.",
+      "There has never been a wildfire in your immediate area before, and you have not previously needed to evacuate due",
+      "to fire. Your home is not specially prepared or hardened for wildfire risk (for example, there is limited defensible",
+      "space around the structure).",
+      "At the start of the scenario, daily activities are proceeding normally. You are responsible for decisions affecting",
+      "yourself, your children, and your pet during the unfolding situation.",
       "Over the next several hours, conditions may worsen or improve.",
       "You will be able to receive information from different sources.",
       "At each stage, review the available information and decide what you would do to deal with the situation."
     ]
   },
-
   "start_time_display": "14:00",
-  "time_steps": [-6, -5, -4, -3, -2, -1, 0],
-
-"preparation_actions": [
-  {
-    "id": "gather_belongings",
-    "label": "Gather important belongings",
-    "description": "Collect essential documents, medications, chargers, valuables, and personal items.",
-    "available_from": -5,
-    "available_until": -2,
-    "estimated_time_minutes": 25
-  },
-  {
-    "id": "prepare_children",
-    "label": "Prepare children",
-    "description": "Explain the situation to your children, help them pack clothes and comfort items, and ensure they are ready to leave.",
-    "available_from": -5,
-    "available_until": -1,
-    "estimated_time_minutes": 20
-  },
-  {
-    "id": "prepare_dog",
-    "label": "Prepare dog",
-    "description": "Locate your dog, prepare a leash or carrier, and gather food, water, and supplies.",
-    "available_from": -5,
-    "available_until": -1,
-    "estimated_time_minutes": 10
-  },
-  {
-    "id": "secure_home",
-    "label": "Secure home",
-    "description": "Close windows and doors, turn off appliances if needed, and make quick efforts to reduce property risk.",
-    "available_from": -5,
-    "available_until": -3,
-    "estimated_time_minutes": 15
-  },
-  {
-    "id": "check_on_others",
-    "label": "Check on household members / neighbors",
-    "description": "Contact or speak with others to confirm they are aware of the situation and prepared.",
-    "available_from": -6,
-    "available_until": -3,
-    "estimated_time_minutes": 10
-  },
-  {
-    "id": "seek_information",
-    "label": "Seek additional information",
-    "description": "Monitor official alerts, news, and maps to better understand the situation.",
-    "available_from": -6,
-    "available_until": -1,
-    "estimated_time_minutes": 15
-  },
-  {
-    "id": "load_vehicle",
-    "label": "Load vehicle",
-    "description": "Load the car with kids, pet, and belongings, and position it for departure.",
-    "available_from": -5,
-    "available_until": -2,
-    "estimated_time_minutes": 15
-  },
-  {
-    "id": "fill_gas_tank",
-    "label": "Fill car with gas",
-    "description": "Drive to a gas station and fill the car’s fuel tank.",
-    "available_from": -6,
-    "available_until": -4,
-    "estimated_time_minutes": 30
-  },
-  {
-    "id": "arrange_destination",
-    "label": "Arrange evacuation destination",
-    "description": "Identify where you would go if evacuating, such as a shelter, hotel, or friend’s home.",
-    "available_from": -4,
-    "available_until": -2,
-    "estimated_time_minutes": 15
-  }
-],
-
-
+  "time_steps": [
+    -6,
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    0
+  ],
+  "preparation_actions": [
+    {
+      "id": "gather_belongings",
+      "label": "Gather essentials",
+      "description": "Collect medications, IDs, chargers, keys, and a change of clothes.",
+      "available_from": -5,
+      "available_until": -2,
+      "estimated_time_minutes": 10
+    },
+    {
+      "id": "prepare_children",
+      "label": "Prepare Children",
+      "description": "Collect documents, clothes, valuables and electronics.",
+      "available_from": -5,
+      "available_until": -1,
+      "estimated_time_minutes": 10
+    },
+    {
+      "id": "prepare_dog",
+      "label": "Dog prep",
+      "description": "",
+      "available_from": -5,
+      "available_until": -1,
+      "estimated_time_minutes": 3
+    },
+    {
+      "id": "secure_home",
+      "label": "Secure your home",
+      "description": "",
+      "available_from": -5,
+      "available_until": -3,
+      "estimated_time_minutes": 0
+    },
+    {
+      "id": "check_on_others",
+      "label": "Check on your Neighbors",
+      "description": "Talk to neighbors and make sure they are aware of recent developments",
+      "available_from": -6,
+      "available_until": -3,
+      "estimated_time_minutes": 30
+    },
+    {
+      "id": "seek_information",
+      "label": "Look for additional information",
+      "description": "Search for additional information",
+      "available_from": -6,
+      "available_until": -1,
+      "estimated_time_minutes": 30
+    },
+    {
+      "id": "load_vehicle",
+      "label": "Load your vehicle",
+      "description": "",
+      "available_from": -5,
+      "available_until": -2,
+      "estimated_time_minutes": 30
+    },
+    {
+      "id": "fill_gas_tank",
+      "label": "Prepare your car",
+      "description": "Fill up your car's tank with gas",
+      "available_from": -6,
+      "available_until": -4,
+      "estimated_time_minutes": 40
+    },
+    {
+      "id": "arrange_destination",
+      "label": "Find a place to evacuate to",
+      "description": "Call friends and relatives to find a place to stay if you evacuate",
+      "available_from": -4,
+      "available_until": -2,
+      "estimated_time_minutes": 45
+    }
+  ],
   "tiles": {
     "1": {
       "label": "Hazard Conditions",
       "content": {
-        "-6": { "text": "Clear skies, no smoke visible.", "image": "images/clear_sky.jpg" },
-        "-5": { "text": "Faint smoke visible on the horizon." },
-        "-4": { "text": "Smoke clearly visible in the area.", "image": "images/smoke_visible.jpg" },
-        "-3": { "text": "Thick smoke present, ash falling." },
-        "-2": { "text": "Very thick smoke, embers nearby.", "image": "images/embers_close.jpg" },
-        "-1": { "text": "Flames visible nearby." },
-        "0": { "text": "Fire entering the neighborhood.", "image": "images/fire_near.jpg" }
+        "-6": {
+          "text": "Clear skies, no smoke visible.",
+          "image": "images/clear_sky.jpg"
+        },
+        "-5": {
+          "text": "Faint smoke visible on the horizon."
+        },
+        "-4": {
+          "text": "Smoke clearly visible in the area.",
+          "image": "images/smoke_visible.jpg"
+        },
+        "-3": {
+          "text": "Thick smoke present, ash falling."
+        },
+        "-2": {
+          "text": "Very thick smoke, embers nearby.",
+          "image": "images/embers_close.jpg"
+        },
+        "-1": {
+          "text": "Flames visible nearby."
+        },
+        "0": {
+          "text": "Fire entering the neighborhood.",
+          "image": "images/wildfire_near.jpg"
+        }
       }
     },
-
     "2": {
       "label": "Official Alerts",
       "content": {
-        "-6": { "text": "Red Flag Warning issued for the area.", "image": "images/red_flag.jpg" },
-        "-5": { "text": "Fire Weather Watch remains in effect." },
-        "-4": { "text": "Evacuation Warning issued for nearby zones." },
-        "-3": { "text": "Authorities advise preparing to evacuate." },
-        "-2": { "text": "Mandatory Evacuation Order issued for adjacent areas." },
-        "-1": { "text": "Mandatory Evacuation Order expanded. Leave immediately." }
+        "-6": {
+          "text": "Red Flag Warning issued for the area.",
+          "image": "images/red_flag.jpg"
+        },
+        "-5": {
+          "text": "Fire Weather Watch remains in effect.",
+          "image": "images\\red_flag.jpg"
+        },
+        "-4": {
+          "text": "Evacuation Warning issued for nearby zones."
+        },
+        "-3": {
+          "text": "Authorities advise preparing to evacuate."
+        },
+        "-2": {
+          "text": "Mandatory Evacuation Order issued for adjacent areas.",
+          "image": "images\\evacuation order.jpg"
+        },
+        "-1": {
+          "text": "Mandatory Evacuation Order expanded. Leave immediately.",
+          "image": "images\\evac_notice.jpg"
+        }
       }
     },
-
     "3": {
       "label": "Social Contacts Messages",
       "content": {
-        "-5": { "text": "Neighbor Mary: Smells smoky outside." },
-        "-4": { "text": "Neighbor Joe: Packing just in case." },
-        "-3": { "text": "Neighbor Amy: Are you thinking of leaving?" },
-        "-2": { "text": "Neighbor Tom: Traffic is getting bad." },
-        "-1": { "text": "Neighbor Amy: We just left." }
+        "-6": {
+          "text": "Neighbor Mike: What's up?",
+          "image": ""
+        },
+        "-5": {
+          "text": "Neighbor Mary: Smells smoky outside."
+        },
+        "-4": {
+          "text": "Neighbor Joe: Packing just in case."
+        },
+        "-3": {
+          "text": "Neighbor Amy: Are you thinking of leaving?"
+        },
+        "-2": {
+          "text": "Neighbor Tom: Traffic is getting bad."
+        },
+        "-1": {
+          "text": "Neighbor Amy: We just left."
+        }
       }
     },
-
     "4": {
       "label": "News Update",
       "content": {
-        "-6": { "text": "Breaking news: Wildfire reported in nearby foothills." },
-        "-4": { "text": "Update: Fire growing rapidly with strong winds." },
-        "-3": { "text": "Live coverage: Evacuations underway in nearby communities." },
-        "-2": { "text": "Officials urge residents to follow evacuation orders." },
-        "-1": { "text": "Breaking: Major roads closing due to fire activity." }
+        "-6": {
+          "text": "Breaking news: Wildfire reported in nearby foothills.",
+          "image": "images/wildfire_near.jpg"
+        },
+        "-5": {
+          "text": "Update: Fire growing. Winds have increased."
+        },
+        "-4": {
+          "text": "Update: Fire growing rapidly with strong winds."
+        },
+        "-3": {
+          "text": "Live coverage: Evacuations underway in nearby communities."
+        },
+        "-2": {
+          "text": "Officials urge residents to follow evacuation orders."
+        },
+        "-1": {
+          "text": "Breaking: Major roads closing due to fire activity."
+        }
       }
     },
-
     "5": {
       "label": "Traffic and Roads",
       "content": {
-        "-6": { "text": "Roads are clear and traffic is normal.", "image": "images/normal_traffic.jpg" },
-        "-4": { "text": "Light congestion reported on main routes." },
-        "-3": { "text": "Stop and go traffic on evacuation routes." },
-        "-2": { "text": "Heavy congestion and multiple road closures." },
-        "-1": { "text": "Gridlock on major exits from the area." }
+        "-6": {
+          "text": "Roads are clear and traffic is normal.",
+          "image": "images/normal_traffic.jpg"
+        },
+        "-5": {
+          "text": "No updates."
+        },
+        "-4": {
+          "text": "Light congestion reported on main routes."
+        },
+        "-3": {
+          "text": "Stop and go traffic on evacuation routes."
+        },
+        "-2": {
+          "text": "Heavy congestion and multiple road closures.",
+          "image": "images\\congestion_traffic.jpg"
+        },
+        "-1": {
+          "text": "Gridlock on major exits from the area."
+        }
       }
     },
-
     "6": {
       "label": "Utilities and Infrastructure",
       "content": {
-        "-5": { "text": "Possible power shutoffs announced." },
-        "-4": { "text": "Rolling power outages reported." },
-        "-3": { "text": "Cell service intermittent in some areas." },
-        "-2": { "text": "Water pressure reduced in parts of the community." },
-        "-1": { "text": "Widespread power and communication outages." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "Possible power shutoffs announced."
+        },
+        "-4": {
+          "text": "Rolling power outages reported.",
+          "image": "images\\blackouts_power.jpg"
+        },
+        "-3": {
+          "text": "Cell service intermittent in some areas.",
+          "image": "images\\phone_outages.jpg"
+        },
+        "-2": {
+          "text": "Water pressure reduced in parts of the community."
+        },
+        "-1": {
+          "text": "Widespread power and communication outages."
+        }
       }
     },
-
     "7": {
       "label": "Household Readiness",
       "content": {
-        "-6": { "text": "No preparations underway." },
-        "-5": { "text": "Thinking about what to pack." },
-        "-4": { "text": "Packing essential items." },
-        "-3": { "text": "Gathering pets and household members." },
-        "-2": { "text": "Waiting for someone to return home." },
-        "-1": { "text": "Leaving with limited belongings." }
+        "-6": {
+          "text": "No preparations underway."
+        },
+        "-5": {
+          "text": "Thinking about what to pack."
+        },
+        "-4": {
+          "text": "Packing essential items."
+        },
+        "-3": {
+          "text": "Gathering pets and household members."
+        },
+        "-2": {
+          "text": "Waiting for someone to return home."
+        },
+        "-1": {
+          "text": "Leaving with limited belongings."
+        }
       }
     },
-
     "8": {
       "label": "Health and Smoke",
       "content": {
-        "-5": { "text": "Air quality advisory issued.", "image": "images/smoke_health.jpg" },
-        "-4": { "text": "Smoke causing mild irritation." },
-        "-3": { "text": "Coughing and reduced visibility reported." },
-        "-2": { "text": "Unhealthy air conditions outdoors." },
-        "-1": { "text": "Breathing difficult without protection." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "Air quality advisory issued.",
+          "image": "images/smoke_health.jpg"
+        },
+        "-4": {
+          "text": "Smoke causing mild irritation."
+        },
+        "-3": {
+          "text": "Coughing and reduced visibility reported."
+        },
+        "-2": {
+          "text": "Unhealthy air conditions outdoors."
+        },
+        "-1": {
+          "text": "Breathing difficult without protection."
+        }
       }
     },
-
     "9": {
       "label": "Evacuation Destinations",
       "content": {
-        "-4": { "text": "County shelter opened at fairgrounds (pets allowed)." },
-        "-3": { "text": "Shelter filling quickly; limited space remaining." },
-        "-2": { "text": "Shelter at capacity. Alternate shelter 30 miles east." },
-        "-1": { "text": "All nearby shelters full. Consider staying with friends or family." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "No updates."
+        },
+        "-4": {
+          "text": "County shelter opened at fairgrounds (pets allowed)."
+        },
+        "-3": {
+          "text": "Shelter filling quickly; limited space remaining."
+        },
+        "-2": {
+          "text": "Shelter at capacity. Alternate shelter 30 miles east."
+        },
+        "-1": {
+          "text": "All nearby shelters full. Consider staying with friends or family."
+        }
       }
     },
-
     "10": {
       "label": "Emergency Personnel Presence",
       "content": {
-        "-5": { "text": "Fire crews staged in nearby areas." },
-        "-4": { "text": "Police monitoring traffic intersections." },
-        "-3": { "text": "Fire engines visible in the neighborhood." },
-        "-2": { "text": "Emergency personnel redirected to active fire lines." },
-        "-1": { "text": "No emergency crews visible in residential streets." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "Fire crews staged in nearby areas."
+        },
+        "-4": {
+          "text": "Police monitoring traffic intersections."
+        },
+        "-3": {
+          "text": "Fire engines visible in the neighborhood."
+        },
+        "-2": {
+          "text": "Emergency personnel redirected to active fire lines."
+        },
+        "-1": {
+          "text": "No emergency crews visible in residential streets."
+        }
       }
     },
-
     "11": {
       "label": "Community Activity",
       "content": {
-        "-5": { "text": "Some neighbors outside watching the smoke." },
-        "-4": { "text": "Several homes loading cars." },
-        "-3": { "text": "Many neighbors leaving; others staying." },
-        "-2": { "text": "Most homes on the street appear empty." },
-        "-1": { "text": "Only a few cars remain in the neighborhood." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "Some neighbors outside watching the smoke."
+        },
+        "-4": {
+          "text": "Several homes loading cars."
+        },
+        "-3": {
+          "text": "Many neighbors leaving; others staying."
+        },
+        "-2": {
+          "text": "Most homes on the street appear empty."
+        },
+        "-1": {
+          "text": "Only a few cars remain in the neighborhood."
+        }
       }
     },
-
     "12": {
       "label": "Close Contact Messaging",
       "type": "social_contacts",
       "contacts": [
-        { "id": "alex", "name": "Alex (Friend)", "response_policy": "cautious_friend" },
-        { "id": "jamie", "name": "Jamie (Friend)", "response_policy": "skeptical_friend" },
-        { "id": "sam", "name": "Sam (Sibling)", "response_policy": "alarmist_friend" }
+        {
+          "id": "alex",
+          "name": "from Alex (Friend)",
+          "response_policy": "cautious_friend"
+        },
+        {
+          "id": "jamie",
+          "name": "from Jamie (Friend)",
+          "response_policy": "skeptical_friend"
+        },
+        {
+          "id": "sam",
+          "name": "from Sam (Sibling)",
+          "response_policy": "alarmist_friend"
+        }
       ],
       "content": {
-        "-6": { "text": "You can message people you know." },
-        "-5": { "text": "You can message people you know." },
-        "-4": { "text": "You can message people you know." },
-        "-3": { "text": "You can message people you know." },
-        "-2": { "text": "You can message people you know." },
-        "-1": { "text": "You can message people you know." }
+        "-6": {
+          "text": "You can message people you know."
+        },
+        "-5": {
+          "text": "You can message people you know."
+        },
+        "-4": {
+          "text": "You can message people you know."
+        },
+        "-3": {
+          "text": "You can message people you know."
+        },
+        "-2": {
+          "text": "You can message people you know."
+        },
+        "-1": {
+          "text": "You can message people you know."
+        }
       }
     },
-
     "13": {
       "label": "Transit Options",
       "content": {
-        "-4": { "text": "Public buses running on normal schedule." },
-        "-3": { "text": "Evacuation buses announced at community center." },
-        "-2": { "text": "Limited bus capacity; long waits reported." },
-        "-1": { "text": "Bus service suspended due to road closures." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "No updates."
+        },
+        "-4": {
+          "text": "Public buses running on normal schedule."
+        },
+        "-3": {
+          "text": "Evacuation buses announced at community center."
+        },
+        "-2": {
+          "text": "Limited bus capacity; long waits reported."
+        },
+        "-1": {
+          "text": "Bus service suspended due to road closures."
+        }
       }
     },
-
     "14": {
       "label": "Navigation and Maps",
       "content": {
-        "-4": { "text": "Maps show recommended evacuation routes." },
-        "-3": { "text": "Some evacuation routes flagged as congested." },
-        "-2": { "text": "Navigation apps rerouting frequently due to closures." },
-        "-1": { "text": "Multiple routes marked closed or unreliable." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "No updates."
+        },
+        "-4": {
+          "text": "Maps show recommended evacuation routes."
+        },
+        "-3": {
+          "text": "Some evacuation routes flagged as congested."
+        },
+        "-2": {
+          "text": "Navigation apps rerouting frequently due to closures."
+        },
+        "-1": {
+          "text": "Multiple routes marked closed or unreliable."
+        }
       }
     },
-
     "15": {
       "label": "Property Concerns",
       "content": {
-        "-5": { "text": "You consider securing windows and valuables." },
-        "-4": { "text": "Concern about leaving pets or property unattended." },
-        "-3": { "text": "Worry about potential looting after evacuation." },
-        "-2": { "text": "Time pressure limits ability to prepare your home." },
-        "-1": { "text": "Forced to abandon most belongings." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "You consider securing windows and valuables."
+        },
+        "-4": {
+          "text": "Concern about leaving pets or property unattended."
+        },
+        "-3": {
+          "text": "Worry about potential looting after evacuation."
+        },
+        "-2": {
+          "text": "Time pressure limits ability to prepare your home."
+        },
+        "-1": {
+          "text": "Forced to abandon most belongings."
+        }
       }
     },
-
     "16": {
-      "label": "Rumors",
+      "label": "Nextdoor - local group",
       "content": {
-        "-5": { "text": "Online post claims the fire is mostly contained." },
-        "-4": { "text": "Rumor circulating that evacuation orders may be downgraded." },
-        "-3": { "text": "Conflicting reports about which roads are open." },
-        "-2": { "text": "Unverified claim that the fire changed direction." },
-        "-1": { "text": "Report suggests the neighborhood is safe." }
+        "-6": {
+          "text": "No reports."
+        },
+        "-5": {
+          "text": "Online post claims the fire is mostly contained."
+        },
+        "-4": {
+          "text": "Rumor circulating that evacuation orders may be downgraded."
+        },
+        "-3": {
+          "text": "Conflicting reports about which roads are open."
+        },
+        "-2": {
+          "text": "Unverified claim that the fire changed direction."
+        },
+        "-1": {
+          "text": "Report suggests the neighborhood is safe."
+        }
       }
     }
   },
-
   "social_response_policies": {
     "cautious_friend": {
       "-6": "I heard about the fire, but it still sounds pretty far away.",
@@ -319,7 +535,6 @@
       "-2": "This is getting serious. I think leaving is the safer option.",
       "-1": "You really should leave now if you haven't already."
     },
-
     "skeptical_friend": {
       "-6": "Fires happen every year. I wouldn't stress yet.",
       "-5": "Officials tend to overreact with these warnings.",
@@ -328,7 +543,6 @@
       "-2": "I'm still not convinced evacuation is necessary.",
       "-1": "If you're calm at home, staying might be fine."
     },
-
     "alarmist_friend": {
       "-6": "I don't like this at all. Fires spread fast.",
       "-5": "Smoke already worries me. I'd start getting ready.",

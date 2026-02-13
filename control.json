@@ -191,8 +191,7 @@
           "text": "Neighbor Joe: Packing just in case."
         },
         "-3": {
-          "text": "Neighbor Amy: Are you thinking of leaving?",
-          "image": ""
+          "text": "Neighbor Amy: Are you thinking of leaving?"
         },
         "-2": {
           "text": "Neighbor Tom: Traffic is getting bad."
@@ -330,7 +329,7 @@
           "text": "No reports."
         },
         "-5": {
-          "text": "No updates."
+          "text": "Shelters are being prepared."
         },
         "-4": {
           "text": "County shelter opened at fairgrounds (pets allowed)."
@@ -373,7 +372,8 @@
       "label": "Community Activity",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No unusual activities.",
+          "image": ""
         },
         "-5": {
           "text": "Some neighbors outside watching the smoke."

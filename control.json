@@ -182,8 +182,7 @@
       "label": "Social Contacts Messages",
       "content": {
         "-6": {
-          "text": "Neighbor Mike: What's up?",
-          "image": ""
+          "text": "Neighbor Mike: What's up?"
         },
         "-5": {
           "text": "Neighbor Mary: Smells smoky outside."
@@ -192,7 +191,8 @@
           "text": "Neighbor Joe: Packing just in case."
         },
         "-3": {
-          "text": "Neighbor Amy: Are you thinking of leaving?"
+          "text": "Neighbor Amy: Are you thinking of leaving?",
+          "image": ""
         },
         "-2": {
           "text": "Neighbor Tom: Traffic is getting bad."

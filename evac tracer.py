@@ -1,4 +1,4 @@
-# v2.3 - Optimized UI
+# v2.4 - Optimized UI latest version
 
 import streamlit as st
 import json
@@ -325,6 +325,7 @@ if st.session_state.in_assessment:
 
 # ======================================================
 # 7. DECISION SCREEN (PREPARATION + EVACUATION)
+# if there is no description in json it may show an empty line and an option
 # ======================================================
 if st.session_state.in_decision:
     st.subheader(f"Decisions — {get_time_label()}")
@@ -349,7 +350,7 @@ if st.session_state.in_decision:
             if completed:
                 st.write("Completed")
             else:
-                if st.button("Do", key=f"prep_{action['id']}"):
+                if st.button("Perform action", key=f"prep_{action['id']}"):
                     st.session_state.completed_prep_actions.add(action["id"])
                     log_event(
                         "prep_action_completed",
@@ -365,8 +366,8 @@ if st.session_state.in_decision:
     st.markdown("### Evacuation decision")
 
     evac_all = st.button("Evacuate all")
-    evac_fam = st.button("Evacuate kids with Neighbor")
-    stay = st.button("Stay")
+    evac_fam = st.button("Ask a neighbor to evacuate kids and dog")
+    stay = st.button("Stay for now")
 
     if evac_all or evac_fam or stay:
         log_event(
@@ -415,7 +416,7 @@ if st.session_state.scenario_ended:
     results_file = f"results/{st.session_state.session_id}.json"
     try:
         email_results_file(results_file)
-        st.info("✅ Your results have been automatically sent.")
+        st.info("✅ Your decisions have been automatically recorded.")
     except Exception as e:
         st.error(f"Note: Could not send results email. Error: {e}")
 
@@ -435,12 +436,11 @@ if st.session_state.open_tile:
     tile = TILES[st.session_state.open_tile]
     content = tile["content"].get(str(CURRENT_TIME_VAL))
 
-    # Information panel with prominent styling
-    st.markdown(f"""
-    <div style="background: white; border: 3px solid #0066cc; border-radius: 8px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-        <h4 style="margin-top: 0; margin-bottom: 15px; color: #0066cc; font-size: 18px;">{tile['label']}</h4>
-    </div>
-    """, unsafe_allow_html=True)
+    # Information panel with prominent styling header
+    st.markdown(
+        f"<h4 style='margin: 0 0 10px 0; font-size: 20px; color: #333;'>{tile['label']}</h4>",
+        unsafe_allow_html=True
+    )
 
     # Display content with larger font
     if tile.get("type") == "social_contacts":
@@ -465,7 +465,7 @@ if st.session_state.open_tile:
     else:
         if content is not None:
             if "text" in content:
-                st.markdown(f'<div style="font-size: 16px; line-height: 1.6; color: #333;">{content["text"]}</div>',
+                st.markdown(f'<div style="font-size: 20px; line-height: 1.6; color: #333;">{content["text"]}</div>',
                             unsafe_allow_html=True)
             if "image" in content:
                 st.image(content["image"])
@@ -489,7 +489,10 @@ if st.session_state.open_tile:
 
 # Display tile grid
 st.subheader("Information Sources")
-
+# Lock tile selection while a tile is open (forces user to press Close)
+tile_lock = st.session_state.open_tile is not None
+if tile_lock:
+    st.info("Close the current window to open another information source.")
 # Create 4 rows of 4 tiles each
 for row in range(4):
     cols = st.columns(4)
@@ -505,9 +508,13 @@ for row in range(4):
         text = label
 
         with cols[col_idx]:
-            if st.button(text, key=f"tile_{tid}_{st.session_state.time_index}", use_container_width=True):
-                # Log time for previously open tile/contact before switching
-                close_current_tile()
+
+            if st.button(
+                text,
+                key=f"tile_{tid}_{st.session_state.time_index}",
+                use_container_width=True,
+                disabled=tile_lock
+            ):
 
                 # Open new tile
                 st.session_state.open_tile = tid

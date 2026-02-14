@@ -468,7 +468,13 @@ if st.session_state.open_tile:
                 st.markdown(f'<div style="font-size: 20px; line-height: 1.6; color: #333;">{content["text"]}</div>',
                             unsafe_allow_html=True)
             if "image" in content:
-                st.image(content["image"])
+                img = content.get("image")
+
+                # Only attempt to render if it's a non-empty string
+                if isinstance(img, str) and img.strip():
+                    img = img.strip().replace("\\", "/")  # normalize Windows paths
+                    st.image(img)
+                # else: skip silently (or show a placeholder)
         else:
             st.markdown('<div style="font-size: 16px; color: #666;">No information available at this time.</div>',
                         unsafe_allow_html=True)

@@ -160,7 +160,7 @@
         },
         "-5": {
           "text": "Fire Weather Watch remains in effect.",
-          "image": "images\\red_flag.jpg"
+          "image": "images/red_flag.jpg"
         },
         "-4": {
           "text": "Evacuation Warning issued for nearby zones."
@@ -170,11 +170,11 @@
         },
         "-2": {
           "text": "Mandatory Evacuation Order issued for adjacent areas.",
-          "image": "images\\evacuation order.jpg"
+          "image": "images/evacuation order.jpg"
         },
         "-1": {
           "text": "Mandatory Evacuation Order expanded. Leave immediately.",
-          "image": "images\\evac_notice.jpg"
+          "image": "images/evac_notice.jpg"
         }
       }
     },
@@ -243,7 +243,7 @@
         },
         "-2": {
           "text": "Heavy congestion and multiple road closures.",
-          "image": "images\\congestion_traffic.jpg"
+          "image": "images/congestion_traffic.jpg"
         },
         "-1": {
           "text": "Gridlock on major exits from the area."
@@ -261,11 +261,11 @@
         },
         "-4": {
           "text": "Rolling power outages reported.",
-          "image": "images\\blackouts_power.jpg"
+          "image": "images/blackouts_power.jpg"
         },
         "-3": {
           "text": "Cell service intermittent in some areas.",
-          "image": "images\\phone_outages.jpg"
+          "image": "images/phone_outages.jpg"
         },
         "-2": {
           "text": "Water pressure reduced in parts of the community."
@@ -372,8 +372,7 @@
       "label": "Community Activity",
       "content": {
         "-6": {
-          "text": "No unusual activities.",
-          "image": ""
+          "text": "No unusual activities."
         },
         "-5": {
           "text": "Some neighbors outside watching the smoke."

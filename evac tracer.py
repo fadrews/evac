@@ -34,12 +34,12 @@ TILES = CONTROL.get("tiles", {})
 PREP_ACTIONS = CONTROL.get("preparation_actions", [])
 
 SUBJECTIVE_VARS = [
-    "Risk perception; 0 no risk, 100 very high risk",
-    "Decision time pressure; 0 no time pressure, 100 extreme time pressure",
-    "Trust in official alerts; 0 no trust, 100 very high trust",
-    "Anxiety level; 0 no anxiety, 100 very high anxiety",
-    "Social pressure; 0 no pressure, 100 extreme social pressure",
-    "Evacuation feasibility; 0 no feasibility, 100 very high feasibility",
+    "Do you believe the wildfire currently poses a threat to you and your family; 0 no threat, 100 very high threat",
+    "How much decision time pressure do you feel; 0 no time pressure, 100 extreme time pressure",
+    "What is your trust in official alerts; 0 no trust, 100 very high trust",
+    "How anxious are you in this situation; 0 no anxiety, 100 very high anxiety",
+    "How much social pressure do you experience; 0 no pressure, 100 extreme social pressure",
+    "How feasable is an evacuation at this moment; 0 no feasibility, 100 very high feasibility",
     "Decision leaning; 0–50 leaning stay, 51–100 leaning evacuate"
 ]
 

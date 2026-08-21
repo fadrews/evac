@@ -90,7 +90,7 @@
     {
       "id": "seek_information",
       "label": "Look for additional information",
-      "description": "Search for additional information",
+      "description": "Search for additional information online",
       "available_from": -6,
       "available_until": -1,
       "estimated_time_minutes": 30
@@ -233,7 +233,7 @@
           "image": "images/normal_traffic.jpg"
         },
         "-5": {
-          "text": "No updates."
+          "text": "Traffic is increasing, but flowing."
         },
         "-4": {
           "text": "Light congestion reported on main routes."
@@ -254,7 +254,8 @@
       "label": "Utilities and Infrastructure",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No reports about any issues.",
+          "image": ""
         },
         "-5": {
           "text": "Possible power shutoffs announced."
@@ -271,30 +272,31 @@
           "text": "Water pressure reduced in parts of the community."
         },
         "-1": {
-          "text": "Widespread power and communication outages."
+          "text": "Widespread power and communication outages in your community."
         }
       }
     },
     "7": {
-      "label": "Household Readiness",
+      "label": "Fire Location and Forecast",
       "content": {
         "-6": {
-          "text": "No preparations underway."
+          "text": "Wildfire is miles from neighborhood. Strong winds are forecast, but the direction of spread is uncertain.",
+          "image": ""
         },
         "-5": {
-          "text": "Thinking about what to pack."
+          "text": "Growing fire moves toward populated areas. Neighborhood is not in projected fire area."
         },
         "-4": {
-          "text": "Packing essential items."
+          "text": "Updated fire maps show fire spreading toward communities nearby. Continued winds could bring the fire closer."
         },
         "-3": {
-          "text": "Gathering pets and household members."
+          "text": "Fire has moved much closer. Your neighborhood could be threatened if conditions continue."
         },
         "-2": {
-          "text": "Waiting for someone to return home."
+          "text": "Fire is approaching your area. Spot fires and embers are being reported."
         },
         "-1": {
-          "text": "Leaving with limited belongings."
+          "text": "The fire is entering your neighborhood and spreads rapidly."
         }
       }
     },
@@ -302,7 +304,8 @@
       "label": "Health and Smoke",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No reports or information.",
+          "image": ""
         },
         "-5": {
           "text": "Air quality advisory issued.",
@@ -326,10 +329,11 @@
       "label": "Evacuation Destinations",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No reports at this time.",
+          "image": ""
         },
         "-5": {
-          "text": "Shelters are being prepared."
+          "text": "Shelters are being prepared for evacuees."
         },
         "-4": {
           "text": "County shelter opened at fairgrounds (pets allowed)."
@@ -349,7 +353,8 @@
       "label": "Emergency Personnel Presence",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No reports about Emergency Personnel.",
+          "image": ""
         },
         "-5": {
           "text": "Fire crews staged in nearby areas."
@@ -372,7 +377,8 @@
       "label": "Community Activity",
       "content": {
         "-6": {
-          "text": "No unusual activities."
+          "text": "No unusual activities.",
+          "image": ""
         },
         "-5": {
           "text": "Some neighbors outside watching the smoke."
@@ -381,7 +387,7 @@
           "text": "Several homes loading cars."
         },
         "-3": {
-          "text": "Many neighbors leaving; others staying."
+          "text": "Many neighbors leaving; some staying."
         },
         "-2": {
           "text": "Most homes on the street appear empty."
@@ -436,13 +442,14 @@
       "label": "Transit Options",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No reports about transit issues.",
+          "image": ""
         },
         "-5": {
-          "text": "No updates."
+          "text": "Public buses still running on normal schedule."
         },
         "-4": {
-          "text": "Public buses running on normal schedule."
+          "text": "Public buses are affected by traffic. Increasing passenger numbers."
         },
         "-3": {
           "text": "Evacuation buses announced at community center."
@@ -456,13 +463,14 @@
       }
     },
     "14": {
-      "label": "Navigation and Maps",
+      "label": "Online Maps and Navigation",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No updated information.",
+          "image": ""
         },
         "-5": {
-          "text": "No updates."
+          "text": "No updates on online maps."
         },
         "-4": {
           "text": "Maps show recommended evacuation routes."
@@ -471,7 +479,7 @@
           "text": "Some evacuation routes flagged as congested."
         },
         "-2": {
-          "text": "Navigation apps rerouting frequently due to closures."
+          "text": "Navigation apps rerouting frequently due to road closures."
         },
         "-1": {
           "text": "Multiple routes marked closed or unreliable."
@@ -479,25 +487,26 @@
       }
     },
     "15": {
-      "label": "Property Concerns",
+      "label": "Neighborhood Concerns",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "Neighbors have expressed no concerns.",
+          "image": ""
         },
         "-5": {
-          "text": "You consider securing windows and valuables."
+          "text": "Some neighbors consider securing windows and valuables."
         },
         "-4": {
-          "text": "Concern about leaving pets or property unattended."
+          "text": "Neighbors discuss leaving pets or property unattended."
         },
         "-3": {
-          "text": "Worry about potential looting after evacuation."
+          "text": "Some neighbors express worries about potential looting after evacuation."
         },
         "-2": {
-          "text": "Time pressure limits ability to prepare your home."
+          "text": "Your neighbors stopped home preparation due to time pressure."
         },
         "-1": {
-          "text": "Forced to abandon most belongings."
+          "text": "Evacuating neighbors leave most belongings."
         }
       }
     },
@@ -505,7 +514,8 @@
       "label": "Nextdoor - local group",
       "content": {
         "-6": {
-          "text": "No reports."
+          "text": "No discussion about the fire.",
+          "image": ""
         },
         "-5": {
           "text": "Online post claims the fire is mostly contained."

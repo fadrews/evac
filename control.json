@@ -53,47 +53,53 @@
       "description": "Collect medications, IDs, chargers, keys, and a change of clothes.",
       "available_from": -5,
       "available_until": -2,
-      "estimated_time_minutes": 15
+      "estimated_time_minutes": 15,
+      "repeatable": false
     },
     {
       "id": "prepare_children",
-      "label": "Prepare Children",
+      "label": "Prepare children",
       "description": "Select shoes, appropriate clothing, fill water bottles, collect electronic devices.",
       "available_from": -5,
       "available_until": -1,
-      "estimated_time_minutes": 10
+      "estimated_time_minutes": 10,
+      "repeatable": false
     },
     {
       "id": "prepare_dog",
-      "label": "Dog prep",
+      "label": "Dog preparation",
       "description": "Find dog, leash, toys, and carrier. Collect food / water and medications.",
       "available_from": -5,
       "available_until": -1,
-      "estimated_time_minutes": 5
+      "estimated_time_minutes": 5,
+      "repeatable": false
     },
     {
       "id": "secure_home",
       "label": "Secure your home",
       "description": "Close doors/windows, shut off AC, bring nearby combustibles inside.",
-      "available_from": -5,
+      "available_from": -4,
       "available_until": -3,
-      "estimated_time_minutes": 10
+      "estimated_time_minutes": 10,
+      "repeatable": false
     },
     {
       "id": "check_on_others",
-      "label": "Check on your Neighbors",
-      "description": "Talk to neighbors and make sure they are aware of recent developments. Find out if they need assistance.",
+      "label": "Check on neighbor",
+      "description": "Talk to elderly neighbor and make them aware of recent developments. Find out if they need assistance.",
       "available_from": -6,
       "available_until": -3,
-      "estimated_time_minutes": 10
+      "estimated_time_minutes": 10,
+      "repeatable": false
     },
     {
       "id": "seek_information",
       "label": "Look for additional information",
-      "description": "Search for additional information online",
+      "description": "Search for more information online.",
       "available_from": -6,
       "available_until": -1,
-      "estimated_time_minutes": 5
+      "estimated_time_minutes": 5,
+      "repeatable": true
     },
     {
       "id": "load_vehicle",
@@ -101,56 +107,62 @@
       "description": "Collect all of the prepared items and load them into car.",
       "available_from": -5,
       "available_until": -2,
-      "estimated_time_minutes": 15
+      "estimated_time_minutes": 15,
+      "repeatable": false
     },
     {
       "id": "fill_gas_tank",
       "label": "Prepare your car",
-      "description": "Fill up your car's tank with gas",
+      "description": "Fill up your car's tank with gas.",
       "available_from": -6,
       "available_until": -4,
-      "estimated_time_minutes": 25
+      "estimated_time_minutes": 25,
+      "repeatable": false
     },
-     {
+    {
       "id": "Evac route",
-      "label": "Select Evacuation Route",
-      "description": "Select primary route and at least one alternative.",
+      "label": "Check / select evacuation route",
+      "description": "Review current road conditions and select a primary route and at least one alternative.",
       "available_from": -6,
-      "available_until": -4,
-      "estimated_time_minutes": 10
+      "available_until": -1,
+      "estimated_time_minutes": 10,
+      "repeatable": true
     },
-     {
+    {
       "id": "Communications",
       "label": "Prepare communications",
       "description": "Charge phones/power bank and send the household's intended destination/plan to the partner or another contact.",
       "available_from": -6,
       "available_until": -3,
-      "estimated_time_minutes": 5
+      "estimated_time_minutes": 5,
+      "repeatable": false
     },
-     {
-      "id": "Smoke prep",
-      "label": "Prepare for smoke and amber",
-      "description": "Put on appropriate clothing and obtain respiratory protection for you and the children",
-      "available_from": -6,
-      "available_until": -4,
-      "estimated_time_minutes": 10
+    {
+      "id": "Clothing prep",
+      "label": "Prepare for smoke and embers",
+      "description": "Put on appropriate clothing and obtain respiratory protection for you and the children.",
+      "available_from": -4,
+      "available_until": -2,
+      "estimated_time_minutes": 10,
+      "repeatable": false
     },
-     {
+    {
       "id": "Final check",
       "label": "Final Household Check",
-      "description": "Children, dog, medications, phones, keys, wallet/IDs, go-bag.",
-      "available_from": -6,
-      "available_until": -4,
-      "estimated_time_minutes": 5
+      "description": "Check children, dog, medications, phones, keys, wallet/IDs, and go-bag.",
+      "available_from": -5,
+      "available_until": -2,
+      "estimated_time_minutes": 5,
+      "repeatable": false
     },
-    
     {
       "id": "arrange_destination",
       "label": "Find a place to evacuate to",
-      "description": "Call friends and relatives to find a place to stay if you evacuate",
+      "description": "Call friends and relatives to find a place to stay if you evacuate.",
       "available_from": -6,
       "available_until": -2,
-      "estimated_time_minutes": 15
+      "estimated_time_minutes": 15,
+      "repeatable": false
     }
   ],
   "tiles": {
@@ -593,5 +605,9 @@
       "-2": "This is dangerous. You should be evacuating.",
       "-1": "Please tell me you're already on your way out."
     }
+  },
+  "decision_time": {
+    "nominal_minutes": 60,
+    "maximum_minutes": 70
   }
 }

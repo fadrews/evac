@@ -1,4 +1,4 @@
-# v2.4 - Optimized UI latest version
+# v2.5 - Repeatable preparation actions + simulated time budget
 
 import streamlit as st
 import json
@@ -32,6 +32,15 @@ TITLE = CONTROL.get("title", "Research Scenario")
 TIME_STEPS = CONTROL.get("time_steps", [])
 TILES = CONTROL.get("tiles", {})
 PREP_ACTIONS = CONTROL.get("preparation_actions", [])
+
+# Simulated preparation-time budget for each scenario step.
+DECISION_TIME = CONTROL.get("decision_time", {})
+NOMINAL_MINUTES = int(DECISION_TIME.get("nominal_minutes", 60))
+MAX_MINUTES = int(DECISION_TIME.get("maximum_minutes", 70))
+
+if MAX_MINUTES < NOMINAL_MINUTES:
+    st.error("control.json error: maximum_minutes must be >= nominal_minutes.")
+    st.stop()
 
 SUBJECTIVE_VARS = [
     "Do you believe the wildfire currently poses a threat to you and your family; 0 no threat, 100 very high threat",
@@ -85,10 +94,34 @@ def init_state():
         st.session_state.cached_assessment = None
 
         # preparation
+        # Non-repeatable actions that have been completed at any prior time.
+        st.session_state.completed_prep_actions = set()
+
+        # Ordered list of action IDs performed during the current scenario step.
+        # Repeatable actions may occur again in a later step, but only once per step.
+        st.session_state.prep_actions_this_step = []
+
+        # Simulated minutes consumed by preparation actions in the current step.
+        st.session_state.prep_minutes_this_step = 0
+
+        # Total number of times each action has been performed across the scenario.
+        st.session_state.prep_action_counts = {}
+
+
+def ensure_new_state_defaults():
+    """Support browser sessions that were already open when the app was updated."""
+    if "prep_actions_this_step" not in st.session_state:
+        st.session_state.prep_actions_this_step = []
+    if "prep_minutes_this_step" not in st.session_state:
+        st.session_state.prep_minutes_this_step = 0
+    if "prep_action_counts" not in st.session_state:
+        st.session_state.prep_action_counts = {}
+    if "completed_prep_actions" not in st.session_state:
         st.session_state.completed_prep_actions = set()
 
 
 init_state()
+ensure_new_state_defaults()
 
 st.markdown("""
 <style>
@@ -143,22 +176,39 @@ def log_event(event, payload):
         json.dump(st.session_state.logs, f, indent=2)
 
 
-def email_results_file():
-    results_path = Path(f"results/{st.session_state.session_id}.json")
-    if not results_path.exists(): return
+def email_results_file(results_path=None):
+    """Send the session results file using credentials stored in Streamlit secrets."""
+    if results_path is None:
+        results_path = Path(f"results/{st.session_state.session_id}.json")
+    else:
+        results_path = Path(results_path)
 
-    # Access secrets
-    sender_email = st.secrets.get("SENDER_EMAIL", "fadrews@gmail.com")
-    password = st.secrets.get("EMAIL_PASSWORD", "spsu jamp ozlb pjue")  # Fallback for dev
+    if not results_path.exists():
+        raise FileNotFoundError("Results file not found.")
+
+    sender_email = st.secrets.get("SENDER_EMAIL")
+    password = st.secrets.get("EMAIL_PASSWORD")
+    recipient_email = st.secrets.get("RESULTS_EMAIL", sender_email)
+
+    if not sender_email or not password:
+        raise RuntimeError(
+            "Email credentials are not configured. Set SENDER_EMAIL and "
+            "EMAIL_PASSWORD in Streamlit secrets."
+        )
 
     msg = EmailMessage()
     msg["Subject"] = f"Wildfire Scenario Results - {st.session_state.session_id}"
     msg["From"] = sender_email
-    msg["To"] = sender_email
+    msg["To"] = recipient_email
     msg.set_content(f"Results attached for session: {st.session_state.session_id}")
 
     with open(results_path, "rb") as f:
-        msg.add_attachment(f.read(), maintype="application", subtype="json", filename=results_path.name)
+        msg.add_attachment(
+            f.read(),
+            maintype="application",
+            subtype="json",
+            filename=results_path.name
+        )
 
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
@@ -225,37 +275,47 @@ def prep_available(action):
     )
 
 
-def email_results_file(results_path):
-    """Send results file via email"""
-    sender_email = "fadrews@gmail.com"
-    sender_app_password = "spsu jamp ozlb pjue"
-    recipient_email = "fadrews@gmail.com"
+def is_repeatable(action):
+    """Return True when the JSON allows an action to reappear in later steps."""
+    return bool(action.get("repeatable", False))
 
-    results_path = Path(results_path)
-    if not results_path.exists():
-        raise FileNotFoundError("Results file not found.")
 
-    msg = EmailMessage()
-    msg["Subject"] = "Wildfire Evacuation Scenario – Results"
-    msg["From"] = sender_email
-    msg["To"] = recipient_email
+def performed_this_step(action):
+    """Repeatable and non-repeatable actions can only be performed once per step."""
+    return action["id"] in st.session_state.prep_actions_this_step
 
-    msg.set_content(
-        f"Attached is the results file for session {st.session_state.session_id}."
+
+def permanently_completed(action):
+    """Only non-repeatable actions are permanently completed."""
+    return (
+        not is_repeatable(action)
+        and action["id"] in st.session_state.completed_prep_actions
     )
 
-    with open(results_path, "rb") as f:
-        msg.add_attachment(
-            f.read(),
-            maintype="application",
-            subtype="json",
-            filename=results_path.name
-        )
 
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(sender_email, sender_app_password)
-        server.send_message(msg)
+def minutes_remaining_in_hour():
+    return max(0, NOMINAL_MINUTES - st.session_state.prep_minutes_this_step)
+
+
+def minutes_remaining_to_cap():
+    return max(0, MAX_MINUTES - st.session_state.prep_minutes_this_step)
+
+
+def can_perform_action(action):
+    """An action is selectable only if it is available, unfinished, and fits the time cap."""
+    if not prep_available(action):
+        return False
+    if permanently_completed(action):
+        return False
+    if performed_this_step(action):
+        return False
+
+    duration = int(action.get("estimated_time_minutes", 0))
+    return duration <= minutes_remaining_to_cap()
+
+
+def get_prep_action(action_id):
+    return next((a for a in PREP_ACTIONS if a["id"] == action_id), None)
 
 
 # ======================================================
@@ -332,34 +392,111 @@ if st.session_state.in_decision:
 
     st.markdown("### Preparation actions")
 
+    # --------------------------------------------------
+    # Simulated time budget for this scenario step
+    # --------------------------------------------------
+    used_minutes = st.session_state.prep_minutes_this_step
+    remaining_hour = minutes_remaining_in_hour()
+    remaining_cap = minutes_remaining_to_cap()
+
+    t1, t2, t3 = st.columns(3)
+    t1.metric("Minutes used", f"{used_minutes} min")
+    t2.metric("Minutes left in hour", f"{remaining_hour} min")
+    t3.metric("Minutes left until maximum", f"{remaining_cap} min")
+
+    st.progress(min(used_minutes / MAX_MINUTES, 1.0))
+
+    if used_minutes > NOMINAL_MINUTES:
+        st.warning(
+            f"You are {used_minutes - NOMINAL_MINUTES} minutes beyond the "
+            f"{NOMINAL_MINUTES}-minute hour. No action may push the total "
+            f"past {MAX_MINUTES} minutes."
+        )
+    else:
+        st.caption(
+            f"Preparation actions may use up to {MAX_MINUTES} minutes in this step "
+            f"({NOMINAL_MINUTES} minutes plus a "
+            f"{MAX_MINUTES - NOMINAL_MINUTES}-minute allowance)."
+        )
+
+    if st.session_state.prep_actions_this_step:
+        st.markdown("#### Actions selected this hour")
+        running_total = 0
+        for seq_num, action_id in enumerate(st.session_state.prep_actions_this_step, start=1):
+            selected_action = get_prep_action(action_id)
+            if selected_action is None:
+                continue
+            duration = int(selected_action.get("estimated_time_minutes", 0))
+            running_total += duration
+            st.write(
+                f"{seq_num}. {selected_action['label']} — {duration} min "
+                f"(cumulative: {running_total} min)"
+            )
+
+    st.divider()
+
     for action in PREP_ACTIONS:
         if not prep_available(action):
             continue
 
-        completed = action["id"] in st.session_state.completed_prep_actions
+        done_this_step = performed_this_step(action)
+        done_permanently = permanently_completed(action)
+        duration = int(action.get("estimated_time_minutes", 0))
+        fits_time = duration <= minutes_remaining_to_cap()
+
         col1, col2, col3 = st.columns([4, 1, 1])
 
         with col1:
             st.write(f"**{action['label']}**")
-            st.caption(action["description"])
+            if action.get("description"):
+                st.caption(action["description"])
 
         with col2:
-            st.write(f"{action['estimated_time_minutes']} min")
+            st.write(f"{duration} min")
 
         with col3:
-            if completed:
+            if done_permanently:
                 st.write("Completed")
+            elif done_this_step:
+                st.write("Done this hour")
             else:
-                if st.button("Perform action", key=f"prep_{action['id']}"):
-                    st.session_state.completed_prep_actions.add(action["id"])
+                if st.button(
+                    "Perform action",
+                    key=f"prep_{action['id']}_{st.session_state.time_index}",
+                    disabled=not fits_time
+                ):
+                    minutes_before = st.session_state.prep_minutes_this_step
+                    st.session_state.prep_minutes_this_step += duration
+                    st.session_state.prep_actions_this_step.append(action["id"])
+
+                    if not is_repeatable(action):
+                        st.session_state.completed_prep_actions.add(action["id"])
+
+                    st.session_state.prep_action_counts[action["id"]] = (
+                        st.session_state.prep_action_counts.get(action["id"], 0) + 1
+                    )
+
                     log_event(
                         "prep_action_completed",
                         {
                             "action_id": action["id"],
-                            "estimated_time_minutes": action["estimated_time_minutes"]
+                            "action_label": action["label"],
+                            "repeatable": is_repeatable(action),
+                            "estimated_time_minutes": duration,
+                            "sequence_in_step": len(st.session_state.prep_actions_this_step),
+                            "minutes_before_action": minutes_before,
+                            "minutes_used_this_step": st.session_state.prep_minutes_this_step,
+                            "minutes_remaining_in_hour": minutes_remaining_in_hour(),
+                            "minutes_remaining_to_cap": minutes_remaining_to_cap(),
+                            "occurrence": st.session_state.prep_action_counts[action["id"]]
                         }
                     )
                     st.rerun()
+
+                if not fits_time:
+                    st.caption(
+                        f"Not enough time: {minutes_remaining_to_cap()} min remain."
+                    )
 
     st.divider()
 
@@ -381,18 +518,49 @@ if st.session_state.in_decision:
         if evac_fam:
             choice = "evacuate_family"
 
+        # Preserve action order and cumulative simulated time in the hourly log.
+        action_sequence = []
+        running_total = 0
+        for action_id in st.session_state.prep_actions_this_step:
+            selected_action = get_prep_action(action_id)
+            if selected_action is None:
+                continue
+            duration = int(selected_action.get("estimated_time_minutes", 0))
+            running_total += duration
+            action_sequence.append({
+                "action_id": action_id,
+                "action_label": selected_action["label"],
+                "estimated_time_minutes": duration,
+                "cumulative_minutes": running_total
+            })
+
         log_event(
             "hourly_decision",
             {
                 "scores": st.session_state.cached_assessment,
                 "choice": choice,
-                "completed_prep_actions": list(st.session_state.completed_prep_actions)
+                "prep_action_sequence": action_sequence,
+                "prep_minutes_this_step": st.session_state.prep_minutes_this_step,
+                "minutes_beyond_nominal_hour": max(
+                    0,
+                    st.session_state.prep_minutes_this_step - NOMINAL_MINUTES
+                ),
+                "completed_nonrepeatable_actions": sorted(
+                    st.session_state.completed_prep_actions
+                ),
+                "prep_action_counts": dict(st.session_state.prep_action_counts)
             }
         )
 
         st.session_state.in_decision = False
         st.session_state.cached_assessment = None
         st.session_state.time_index += 1
+
+        # A new scenario hour receives a fresh action budget. Repeatable actions
+        # can reappear if their JSON availability window still includes the new step.
+        st.session_state.prep_actions_this_step = []
+        st.session_state.prep_minutes_this_step = 0
+
         if is_end_of_time_window():
             st.session_state.scenario_ended = True
         st.session_state.dashboard_start_time = datetime.datetime.now()

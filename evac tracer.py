@@ -1,14 +1,20 @@
-# v2.5 Iron Fire adaptation - configurable time-step duration
-#lasted version of the code updated on github as evactracer.py
-#backwards compatible
+# Wildfire Evacuation Decision Simulator
+# Version 2.6 - original 60-minute scenario logging and measurement revision
+#
+# Version 2.6 introduces a versioned result schema, control-file hashing,
+# atomic result writes, strict preparation-time limits, stable assessment IDs,
+# explicit simulated decision times, and improved interaction-state logging.
+
 import streamlit as st
 import json
 import datetime
 from datetime import timedelta
+import hashlib
 import uuid
 import os
 import smtplib
 import ssl
+import time
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -19,17 +25,25 @@ st.set_page_config(layout="wide")
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-@st.cache_data
+APP_VERSION = "2.6"
+RESULT_SCHEMA_VERSION = "3.0"
+CONTROL_PATH = Path("control.json")
+
+
 def load_control():
-    if not os.path.exists("control.json"):
+    """Load the current control file without a stale Streamlit data cache."""
+    if not CONTROL_PATH.exists():
         st.error("Error: 'control.json' not found.")
         st.stop()
-    with open("control.json", "r") as f:
+    with CONTROL_PATH.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
 CONTROL = load_control()
+CONTROL_SHA256 = hashlib.sha256(CONTROL_PATH.read_bytes()).hexdigest()
 TITLE = CONTROL.get("title", "Research Scenario")
+SCENARIO_ID = CONTROL.get("scenario_id")
+SCENARIO_VERSION = str(CONTROL.get("scenario_version", "unspecified"))
 TIME_STEPS = CONTROL.get("time_steps", [])
 TIME_STEP_MINUTES = int(CONTROL.get("time_step_minutes", 60))
 TILES = CONTROL.get("tiles", {})
@@ -48,24 +62,112 @@ if TIME_STEP_MINUTES <= 0:
     st.error("control.json error: time_step_minutes must be greater than zero.")
     st.stop()
 
-SUBJECTIVE_VARS = [
-    "Do you believe the wildfire currently poses a threat to you and your family; 0 no threat, 100 very high threat",
-    "How much decision time pressure do you feel; 0 no time pressure, 100 extreme time pressure",
-    "What is your trust in official alerts; 0 no trust, 100 very high trust",
-    "How anxious are you in this situation; 0 no anxiety, 100 very high anxiety",
-    "How much social pressure do you experience; 0 no pressure, 100 extreme social pressure",
-    "How feasable is an evacuation at this moment; 0 no feasibility, 100 very high feasibility",
-    "Decision leaning; 0–50 leaning stay, 51–100 leaning evacuate"
+if NOMINAL_MINUTES > TIME_STEP_MINUTES:
+    st.error(
+        "control.json error: nominal_minutes cannot exceed the allocated "
+        "time_step_minutes."
+    )
+    st.stop()
+
+if MAX_MINUTES > TIME_STEP_MINUTES:
+    st.error(
+        "control.json error: maximum_minutes cannot exceed the allocated "
+        "time_step_minutes. Set maximum_minutes to 60 for the original "
+        "60-minute scenario."
+    )
+    st.stop()
+
+if not TIME_STEPS:
+    st.error("control.json error: time_steps must contain at least one step.")
+    st.stop()
+
+if SCENARIO_ID != "original_wildfire":
+    st.error(
+        "control.json error: wildfire_simulator_v2_6.py is currently limited "
+        "to scenario_id 'original_wildfire'. Use the matching revised original "
+        "control file. The Iron Fire scenario is intentionally excluded."
+    )
+    st.stop()
+
+ASSESSMENT_VARIABLES = [
+    {
+        "id": "perceived_threat",
+        "prompt": "How much threat does the wildfire currently pose to you and your family?",
+        "low_anchor": "no threat",
+        "high_anchor": "very high threat"
+    },
+    {
+        "id": "decision_time_pressure",
+        "prompt": "How much decision time pressure do you feel?",
+        "low_anchor": "no time pressure",
+        "high_anchor": "extreme time pressure"
+    },
+    {
+        "id": "trust_official_alerts",
+        "prompt": "What is your trust in official alerts?",
+        "low_anchor": "no trust",
+        "high_anchor": "very high trust"
+    },
+    {
+        "id": "anxiety",
+        "prompt": "How anxious are you in this situation?",
+        "low_anchor": "no anxiety",
+        "high_anchor": "very high anxiety"
+    },
+    {
+        "id": "social_pressure",
+        "prompt": "How much social pressure do you experience?",
+        "low_anchor": "no pressure",
+        "high_anchor": "extreme social pressure"
+    },
+    {
+        "id": "household_readiness",
+        "prompt": "How ready are you and your household to leave immediately?",
+        "low_anchor": "not ready",
+        "high_anchor": "completely ready"
+    },
+    {
+        "id": "route_feasibility",
+        "prompt": "How feasible and safe is evacuation using the currently available routes?",
+        "low_anchor": "not feasible or safe",
+        "high_anchor": "completely feasible and safe"
+    },
+    {
+        "id": "evacuation_leaning",
+        "prompt": "Which direction are you currently leaning?",
+        "low_anchor": "strongly leaning to stay",
+        "high_anchor": "strongly leaning to evacuate"
+    }
 ]
+
+DECISION_PROCESS_STATES = {
+    "continue_normal": "Continue normal activities",
+    "monitor": "Monitor conditions",
+    "prepare": "Prepare or continue preparing to evacuate",
+    "ready_waiting": "Ready to evacuate and waiting for a trigger",
+    "evacuate_now": "Evacuate now"
+}
 
 
 # ======================================================
 # 2. SESSION STATE INITIALIZATION
 # ======================================================
+def utc_now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
 def init_state():
     if "session_id" not in st.session_state:
         st.session_state.session_id = str(uuid.uuid4())
+        st.session_state.session_schema_version = RESULT_SCHEMA_VERSION
+        st.session_state.session_started_at_utc = utc_now_iso()
+        st.session_state.session_completed_at_utc = None
+        st.session_state.completion_status = "active"
+        st.session_state.event_sequence = 0
         st.session_state.logs = []
+        st.session_state.results_delivery_attempted = False
+        st.session_state.results_delivery_succeeded = False
+        st.session_state.results_delivery_error = None
 
         # flow
         st.session_state.consent_given = False
@@ -82,24 +184,32 @@ def init_state():
         st.session_state.open_tile = None
         st.session_state.tiles_opened_this_step = set()
         st.session_state.viewed_updates = set()
-        st.session_state.dashboard_start_time = datetime.datetime.now()
+        st.session_state.dashboard_start_perf = None
+        st.session_state.current_phase = None
 
         # phase flags
         st.session_state.in_assessment = False
         st.session_state.in_decision = False
 
         # timing
-        st.session_state.assessment_start_time = None
-        st.session_state.decision_start_time = None
-        st.session_state.tile_open_time = None
+        st.session_state.assessment_start_perf = None
+        st.session_state.decision_start_perf = None
+        st.session_state.tile_open_perf = None
         st.session_state.current_tile_id = None
+        st.session_state.current_tile_instance_id = None
+        st.session_state.current_tile_display_logged = False
+        st.session_state.tile_view_sequence_this_step = 0
 
         # social timing
         st.session_state.current_social_contact = None
-        st.session_state.social_open_time = None
+        st.session_state.social_open_perf = None
+        st.session_state.current_social_instance_id = None
 
         # assessment cache
         st.session_state.cached_assessment = None
+        st.session_state.cached_assessment_interactions = None
+        st.session_state.assessment_interactions = {}
+        st.session_state.decision_process_state = None
 
         # preparation
         # Non-repeatable actions that have been completed at any prior time.
@@ -132,6 +242,17 @@ def ensure_new_state_defaults():
         st.session_state.scenario_end_reason = None
 
 
+def reset_incompatible_session_state():
+    """Never mix pre-3.0 session state with the revised result schema."""
+    if (
+        "session_id" in st.session_state
+        and st.session_state.get("session_schema_version") != RESULT_SCHEMA_VERSION
+    ):
+        st.session_state.clear()
+        st.rerun()
+
+
+reset_incompatible_session_state()
 init_state()
 ensure_new_state_defaults()
 
@@ -176,16 +297,106 @@ CURRENT_TIME_VAL = (
 # ======================================================
 # 3. LOGGING
 # ======================================================
+def atomic_write_json(path, data):
+    """Write complete JSON through a temporary file and atomically publish it."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temp_path.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+def scheduled_time_label(index=None, offset_minutes=0):
+    if index is None:
+        index = st.session_state.time_index
+    start = datetime.datetime.strptime(
+        CONTROL.get("start_time_display", "14:00"), "%H:%M"
+    )
+    current = start + timedelta(
+        minutes=(TIME_STEP_MINUTES * index) + offset_minutes
+    )
+    return current.strftime("%I:%M %p")
+
+
+def result_document():
+    return {
+        "schema_version": RESULT_SCHEMA_VERSION,
+        "session": {
+            "session_id": st.session_state.session_id,
+            "app_version": APP_VERSION,
+            "started_at_utc": st.session_state.session_started_at_utc,
+            "completed_at_utc": st.session_state.session_completed_at_utc,
+            "completion_status": st.session_state.completion_status
+        },
+        "scenario": {
+            "scenario_id": SCENARIO_ID,
+            "scenario_version": SCENARIO_VERSION,
+            "title": TITLE,
+            "control_filename": CONTROL_PATH.name,
+            "control_sha256": CONTROL_SHA256,
+            "start_time_display": CONTROL.get("start_time_display", "14:00"),
+            "time_step_minutes": TIME_STEP_MINUTES,
+            "nominal_minutes": NOMINAL_MINUTES,
+            "maximum_minutes": MAX_MINUTES,
+            "time_steps": TIME_STEPS
+        },
+        "events": st.session_state.logs,
+        "completion": {
+            "final_choice": st.session_state.final_choice,
+            "end_reason": st.session_state.scenario_end_reason,
+            "delivery_attempted": st.session_state.results_delivery_attempted,
+            "delivery_succeeded": st.session_state.results_delivery_succeeded,
+            "delivery_error": st.session_state.results_delivery_error
+        }
+    }
+
+
+def persist_results():
+    atomic_write_json(
+        Path("results") / f"{st.session_state.session_id}.json",
+        result_document()
+    )
+
+
 def log_event(event, payload):
+    st.session_state.event_sequence += 1
+    event_step_value = (
+        TIME_STEPS[st.session_state.time_index]
+        if st.session_state.time_index < len(TIME_STEPS)
+        else None
+    )
     st.session_state.logs.append({
-        "time_step": CURRENT_TIME_VAL,
+        "event_sequence": st.session_state.event_sequence,
+        "event_id": str(uuid.uuid4()),
+        "step_index": st.session_state.time_index,
+        "scenario_step_value": event_step_value,
+        "scheduled_step_time": scheduled_time_label(),
         "event": event,
         **payload,
-        "timestamp": datetime.datetime.now().isoformat()
+        "server_timestamp_utc": utc_now_iso()
     })
-    os.makedirs("results", exist_ok=True)
-    with open(f"results/{st.session_state.session_id}.json", "w") as f:
-        json.dump(st.session_state.logs, f, indent=2)
+    persist_results()
+
+
+def save_contact_information(email, phone):
+    """Keep identifiable contact information outside the behavioral event log."""
+    contact_record = {
+        "study_session_id": st.session_state.session_id,
+        "collected_at_utc": utc_now_iso(),
+        "email": email.strip(),
+        "phone": phone.strip()
+    }
+    atomic_write_json(
+        Path("contact_results") / f"{st.session_state.session_id}.json",
+        contact_record
+    )
 
 
 def email_results_file(results_path=None):
@@ -235,43 +446,57 @@ def clear_open_information_state():
     """Clear all tile and social-message display and timing state."""
     st.session_state.open_tile = None
     st.session_state.current_tile_id = None
-    st.session_state.tile_open_time = None
+    st.session_state.tile_open_perf = None
+    st.session_state.current_tile_instance_id = None
+    st.session_state.current_tile_display_logged = False
     st.session_state.current_social_contact = None
-    st.session_state.social_open_time = None
+    st.session_state.social_open_perf = None
+    st.session_state.current_social_instance_id = None
 
 
 def finalize_open_information(reason):
     """Log the current information exposure, then close and clear it."""
     if (
         st.session_state.current_tile_id is not None
-        and st.session_state.tile_open_time is not None
+        and st.session_state.tile_open_perf is not None
     ):
         log_event(
-            "tile_time_spent",
+            "tile_closed",
             {
                 "id": st.session_state.current_tile_id,
-                "duration_seconds": (
-                        datetime.datetime.now() - st.session_state.tile_open_time
-                ).total_seconds(),
+                "tile_instance_id": st.session_state.current_tile_instance_id,
+                "server_elapsed_seconds": (
+                    time.perf_counter() - st.session_state.tile_open_perf
+                ),
+                "timer_source": "server_monotonic_includes_render_latency",
                 "close_reason": reason
             }
         )
-    if (
-        st.session_state.current_social_contact is not None
-        and st.session_state.social_open_time is not None
-    ):
-        log_event(
-            "social_message_time_spent",
-            {
-                "contact": st.session_state.current_social_contact,
-                "duration_seconds": (
-                        datetime.datetime.now() - st.session_state.social_open_time
-                ).total_seconds(),
-                "close_reason": reason
-            }
-        )
+    finalize_current_social(reason)
 
     clear_open_information_state()
+
+
+def finalize_current_social(reason):
+    if (
+        st.session_state.current_social_contact is not None
+        and st.session_state.social_open_perf is not None
+    ):
+        log_event(
+            "social_contact_closed",
+            {
+                "contact": st.session_state.current_social_contact,
+                "social_instance_id": st.session_state.current_social_instance_id,
+                "server_elapsed_seconds": (
+                    time.perf_counter() - st.session_state.social_open_perf
+                ),
+                "timer_source": "server_monotonic_includes_render_latency",
+                "close_reason": reason
+            }
+        )
+    st.session_state.current_social_contact = None
+    st.session_state.social_open_perf = None
+    st.session_state.current_social_instance_id = None
 
 
 def has_new_update(tid):
@@ -290,13 +515,32 @@ def is_end_of_time_window():
 
 
 def get_time_label():
-    start = datetime.datetime.strptime(
-        CONTROL.get("start_time_display", "14:00"), "%H:%M"
+    return scheduled_time_label()
+
+
+def content_sha256(content):
+    canonical = json.dumps(content, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def assessment_interaction_key(variable_id):
+    return f"{st.session_state.time_index}:{variable_id}"
+
+
+def mark_assessment_interaction(variable_id):
+    key = assessment_interaction_key(variable_id)
+    record = st.session_state.assessment_interactions.setdefault(
+        key,
+        {
+            "was_interacted_with": False,
+            "change_count": 0,
+            "first_interaction_at_utc": None
+        }
     )
-    current = start + timedelta(
-        minutes=TIME_STEP_MINUTES * st.session_state.time_index
-    )
-    return current.strftime("%I:%M %p")
+    record["was_interacted_with"] = True
+    record["change_count"] += 1
+    if record["first_interaction_at_utc"] is None:
+        record["first_interaction_at_utc"] = utc_now_iso()
 
 
 def prep_available(action):
@@ -324,7 +568,7 @@ def permanently_completed(action):
     )
 
 
-def minutes_remaining_in_hour():
+def minutes_remaining_in_period():
     return max(0, NOMINAL_MINUTES - st.session_state.prep_minutes_this_step)
 
 
@@ -370,8 +614,16 @@ if not st.session_state.contact_collected:
     email = st.text_input("Email (optional)")
     phone = st.text_input("Phone (optional)")
     if st.button("Continue"):
+        save_contact_information(email, phone)
         st.session_state.contact_collected = True
-        log_event("contact_collected", {"email": email, "phone": phone})
+        log_event(
+            "contact_collected",
+            {
+                "email_provided": bool(email.strip()),
+                "phone_provided": bool(phone.strip()),
+                "pii_stored_separately": True
+            }
+        )
         st.rerun()
     st.stop()
 
@@ -388,6 +640,9 @@ if st.session_state.show_intro:
     if st.button("Start Scenario"):
         st.session_state.show_intro = False
         log_event("scenario_started", {})
+        st.session_state.current_phase = "dashboard"
+        st.session_state.dashboard_start_perf = time.perf_counter()
+        log_event("phase_entered", {"phase": "dashboard"})
         st.rerun()
     st.stop()
 
@@ -397,20 +652,74 @@ if st.session_state.show_intro:
 if st.session_state.in_assessment:
     st.subheader("Situation Assessment")
 
-    results = {
-        v: st.slider(v, 0, 100, 50)
-        for v in SUBJECTIVE_VARS
-    }
+    results = {}
+    for variable in ASSESSMENT_VARIABLES:
+        variable_id = variable["id"]
+        label = (
+            f"{variable['prompt']} "
+            f"(0 = {variable['low_anchor']}; "
+            f"100 = {variable['high_anchor']})"
+        )
+        results[variable_id] = st.slider(
+            label,
+            0,
+            100,
+            50,
+            key=f"assessment_{variable_id}_{st.session_state.time_index}",
+            on_change=mark_assessment_interaction,
+            args=(variable_id,)
+        )
 
     if st.button("Continue to Decisions"):
+        assessment_duration = (
+            time.perf_counter() - st.session_state.assessment_start_perf
+        )
+        interaction_records = {}
+        for variable in ASSESSMENT_VARIABLES:
+            variable_id = variable["id"]
+            record = st.session_state.assessment_interactions.get(
+                assessment_interaction_key(variable_id),
+                {
+                    "was_interacted_with": False,
+                    "change_count": 0,
+                    "first_interaction_at_utc": None
+                }
+            )
+            interaction_records[variable_id] = {
+                "value": results[variable_id],
+                "default_value": 50,
+                **record
+            }
+
         log_event(
             "assessment_time_spent",
-            {"duration_seconds": (datetime.datetime.now() - st.session_state.assessment_start_time).total_seconds()}
+            {
+                "server_elapsed_seconds": assessment_duration,
+                "timer_source": "server_monotonic_includes_render_latency"
+            }
+        )
+        log_event(
+            "assessment_submitted",
+            {
+                "scores": results,
+                "interactions": interaction_records,
+                "server_elapsed_seconds": assessment_duration
+            }
+        )
+        log_event(
+            "phase_exited",
+            {
+                "phase": "assessment",
+                "server_elapsed_seconds": assessment_duration
+            }
         )
         st.session_state.cached_assessment = results
+        st.session_state.cached_assessment_interactions = interaction_records
         st.session_state.in_assessment = False
         st.session_state.in_decision = True
-        st.session_state.decision_start_time = datetime.datetime.now()
+        st.session_state.current_phase = "decision"
+        st.session_state.decision_start_perf = time.perf_counter()
+        log_event("phase_entered", {"phase": "decision"})
         st.rerun()
     st.stop()
 
@@ -419,7 +728,7 @@ if st.session_state.in_assessment:
 # if there is no description in json it may show an empty line and an option
 # ======================================================
 if st.session_state.in_decision:
-    st.subheader(f"Decisions — {get_time_label()}")
+    st.subheader(f"Decisions â€” {get_time_label()}")
 
     st.markdown("### Preparation actions")
 
@@ -427,12 +736,12 @@ if st.session_state.in_decision:
     # Simulated time budget for this scenario step
     # --------------------------------------------------
     used_minutes = st.session_state.prep_minutes_this_step
-    remaining_hour = minutes_remaining_in_hour()
+    remaining_hour = minutes_remaining_in_period()
     remaining_cap = minutes_remaining_to_cap()
 
     t1, t2, t3 = st.columns(3)
     t1.metric("Minutes used", f"{used_minutes} min")
-    t2.metric("Minutes left in hour", f"{remaining_hour} min")
+    t2.metric("Minutes left in period", f"{remaining_hour} min")
     t3.metric("Minutes left until maximum", f"{remaining_cap} min")
 
     st.progress(min(used_minutes / MAX_MINUTES, 1.0))
@@ -440,7 +749,7 @@ if st.session_state.in_decision:
     if used_minutes > NOMINAL_MINUTES:
         st.warning(
             f"You are {used_minutes - NOMINAL_MINUTES} minutes beyond the "
-            f"{NOMINAL_MINUTES}-minute hour. No action may push the total "
+            f"{NOMINAL_MINUTES}-minute period. No action may push the total "
             f"past {MAX_MINUTES} minutes."
         )
     else:
@@ -451,7 +760,7 @@ if st.session_state.in_decision:
         )
 
     if st.session_state.prep_actions_this_step:
-        st.markdown("#### Actions selected this hour")
+        st.markdown("#### Actions selected this period")
         running_total = 0
         for seq_num, action_id in enumerate(st.session_state.prep_actions_this_step, start=1):
             selected_action = get_prep_action(action_id)
@@ -460,7 +769,7 @@ if st.session_state.in_decision:
             duration = int(selected_action.get("estimated_time_minutes", 0))
             running_total += duration
             st.write(
-                f"{seq_num}. {selected_action['label']} — {duration} min "
+                f"{seq_num}. {selected_action['label']} â€” {duration} min "
                 f"(cumulative: {running_total} min)"
             )
 
@@ -489,7 +798,7 @@ if st.session_state.in_decision:
             if done_permanently:
                 st.write("Completed")
             elif done_this_step:
-                st.write("Done this hour")
+                st.write("Done this period")
             else:
                 if st.button(
                     "Perform action",
@@ -498,6 +807,7 @@ if st.session_state.in_decision:
                 ):
                     minutes_before = st.session_state.prep_minutes_this_step
                     st.session_state.prep_minutes_this_step += duration
+                    minutes_after = st.session_state.prep_minutes_this_step
                     st.session_state.prep_actions_this_step.append(action["id"])
 
                     if not is_repeatable(action):
@@ -516,8 +826,14 @@ if st.session_state.in_decision:
                             "estimated_time_minutes": duration,
                             "sequence_in_step": len(st.session_state.prep_actions_this_step),
                             "minutes_before_action": minutes_before,
-                            "minutes_used_this_step": st.session_state.prep_minutes_this_step,
-                            "minutes_remaining_in_hour": minutes_remaining_in_hour(),
+                            "minutes_used_this_step": minutes_after,
+                            "simulated_action_start_time": scheduled_time_label(
+                                offset_minutes=minutes_before
+                            ),
+                            "simulated_action_end_time": scheduled_time_label(
+                                offset_minutes=minutes_after
+                            ),
+                            "minutes_remaining_in_period": minutes_remaining_in_period(),
                             "minutes_remaining_to_cap": minutes_remaining_to_cap(),
                             "occurrence": st.session_state.prep_action_counts[action["id"]]
                         }
@@ -531,19 +847,45 @@ if st.session_state.in_decision:
 
     st.divider()
 
+    st.markdown("### Current decision stage")
+    process_state_options = ["__select__", *DECISION_PROCESS_STATES.keys()]
+    selected_process_state = st.selectbox(
+        "Which statement best describes what you have decided to do at this moment?",
+        process_state_options,
+        format_func=lambda value: (
+            "Select your current decision stage"
+            if value == "__select__"
+            else DECISION_PROCESS_STATES[value]
+        ),
+        key=f"decision_process_state_{st.session_state.time_index}"
+    )
+    process_state_selected = selected_process_state != "__select__"
+
     st.markdown("### Evacuation decision")
 
     is_final_step = st.session_state.time_index == len(TIME_STEPS) - 1
 
-    evac_all = st.button("Evacuate now")
-    evac_fam = st.button("Ask a neighbor to evacuate kids and dog")
+    if not process_state_selected:
+        st.caption("Select your current decision stage before making the final choice.")
+
+    evac_all = st.button("Evacuate now", disabled=not process_state_selected)
+    evac_fam = st.button(
+        "Ask a neighbor to evacuate kids and dog",
+        disabled=not process_state_selected
+    )
     stay_label = "Stay despite GO order" if is_final_step else "Stay and continue"
-    stay = st.button(stay_label)
+    stay = st.button(stay_label, disabled=not process_state_selected)
 
     if evac_all or evac_fam or stay:
+        decision_duration = (
+            time.perf_counter() - st.session_state.decision_start_perf
+        )
         log_event(
             "decision_time_spent",
-            {"duration_seconds": (datetime.datetime.now() - st.session_state.decision_start_time).total_seconds()}
+            {
+                "server_elapsed_seconds": decision_duration,
+                "timer_source": "server_monotonic_includes_render_latency"
+            }
         )
 
         choice = "stay"
@@ -552,6 +894,7 @@ if st.session_state.in_decision:
         if evac_fam:
             choice = "evacuate_family"
         st.session_state.final_choice = choice
+        st.session_state.decision_process_state = selected_process_state
 
         # Preserve action order and cumulative simulated time in the hourly log.
         action_sequence = []
@@ -566,65 +909,101 @@ if st.session_state.in_decision:
                 "action_id": action_id,
                 "action_label": selected_action["label"],
                 "estimated_time_minutes": duration,
-                "cumulative_minutes": running_total
+                "cumulative_minutes": running_total,
+                "simulated_action_end_time": scheduled_time_label(
+                    offset_minutes=running_total
+                )
             })
 
+        simulated_offset = st.session_state.prep_minutes_this_step
+        decision_simulated_time = scheduled_time_label(
+            offset_minutes=simulated_offset
+        )
+
+        decision_payload = {
+            "time_step_minutes": TIME_STEP_MINUTES,
+            "scheduled_period_start": scheduled_time_label(),
+            "simulated_offset_minutes": simulated_offset,
+            "decision_simulated_time": decision_simulated_time,
+            "scores": st.session_state.cached_assessment,
+            "assessment_interactions": (
+                st.session_state.cached_assessment_interactions
+            ),
+            "decision_process_state": selected_process_state,
+            "decision_process_label": DECISION_PROCESS_STATES[
+                selected_process_state
+            ],
+            "choice": choice,
+            "prep_action_sequence": action_sequence,
+            "prep_minutes_this_step": simulated_offset,
+            "minutes_beyond_nominal_period": max(
+                0,
+                simulated_offset - NOMINAL_MINUTES
+            ),
+            "completed_nonrepeatable_actions": sorted(
+                st.session_state.completed_prep_actions
+            ),
+            "prep_action_counts": dict(st.session_state.prep_action_counts),
+            "server_elapsed_seconds": decision_duration
+        }
+
         log_event(
-            "hourly_decision",
+            "decision_submitted",
+            decision_payload
+        )
+        log_event(
+            "phase_exited",
             {
-                "time_step_minutes": TIME_STEP_MINUTES,
-                "simulated_time": get_time_label(),
-                "scores": st.session_state.cached_assessment,
-                "choice": choice,
-                "prep_action_sequence": action_sequence,
-                "prep_minutes_this_step": st.session_state.prep_minutes_this_step,
-                "minutes_beyond_nominal_hour": max(
-                    0,
-                    st.session_state.prep_minutes_this_step - NOMINAL_MINUTES
-                ),
-                "completed_nonrepeatable_actions": sorted(
-                    st.session_state.completed_prep_actions
-                ),
-                "prep_action_counts": dict(st.session_state.prep_action_counts)
+                "phase": "decision",
+                "server_elapsed_seconds": decision_duration
             }
         )
 
         st.session_state.in_decision = False
         st.session_state.cached_assessment = None
+        st.session_state.cached_assessment_interactions = None
+        st.session_state.current_phase = None
 
         # Information panels must never carry over into a new scenario step.
         # Exposure should already have been finalized before assessment; this
         # is a defensive state reset and intentionally does not log again.
         clear_open_information_state()
 
-        st.session_state.time_index += 1
-
-        # A new scenario step receives a fresh action budget. Repeatable actions
-        # can reappear if their JSON availability window includes the new step.
-        st.session_state.prep_actions_this_step = []
-        st.session_state.prep_minutes_this_step = 0
-
-        if is_end_of_time_window():
-            st.session_state.scenario_ended = True
-        st.session_state.dashboard_start_time = datetime.datetime.now()
-        st.session_state.tiles_opened_this_step.clear()
-        st.session_state.viewed_updates.clear()
-
         if choice in ["evacuate_all", "evacuate_family"]:
             st.session_state.scenario_ended = True
             st.session_state.scenario_end_reason = "evacuated"
         elif is_final_step:
+            st.session_state.scenario_ended = True
             st.session_state.scenario_end_reason = "stayed_after_final_go"
 
         if st.session_state.scenario_ended:
+            st.session_state.completion_status = "completed"
+            st.session_state.session_completed_at_utc = utc_now_iso()
             log_event(
                 "scenario_outcome",
                 {
                     "final_choice": st.session_state.final_choice,
                     "end_reason": st.session_state.scenario_end_reason,
-                    "final_simulated_time": "08:00 PM"
+                    "final_scheduled_period_start": scheduled_time_label(),
+                    "final_simulated_offset_minutes": simulated_offset,
+                    "final_simulated_time": decision_simulated_time
                 }
             )
+        else:
+            st.session_state.time_index += 1
+
+            # A new scenario step receives a fresh action budget. Repeatable
+            # actions can reappear if their availability window includes it.
+            st.session_state.prep_actions_this_step = []
+            st.session_state.prep_minutes_this_step = 0
+            st.session_state.decision_process_state = None
+            st.session_state.tiles_opened_this_step.clear()
+            st.session_state.viewed_updates.clear()
+            st.session_state.tile_view_sequence_this_step = 0
+
+            st.session_state.current_phase = "dashboard"
+            st.session_state.dashboard_start_perf = time.perf_counter()
+            log_event("phase_entered", {"phase": "dashboard"})
 
         st.rerun()
     st.stop()
@@ -641,13 +1020,39 @@ if st.session_state.scenario_ended:
     else:
         st.success("Thank you for participating in this evacuation scenario!")
 
-    # Email results
+    # Attempt delivery only once per session. The local atomic result file is
+    # preserved whether delivery succeeds or fails.
     results_file = f"results/{st.session_state.session_id}.json"
-    try:
-        email_results_file(results_file)
-        st.info("✅ Your decisions have been automatically recorded.")
-    except Exception as e:
-        st.error(f"Note: Could not send results email. Error: {e}")
+    if not st.session_state.results_delivery_attempted:
+        st.session_state.results_delivery_attempted = True
+        log_event("results_delivery_attempted", {"method": "email"})
+        try:
+            email_results_file(results_file)
+            st.session_state.results_delivery_succeeded = True
+            st.session_state.results_delivery_error = None
+            log_event(
+                "results_delivery_completed",
+                {"method": "email", "status": "succeeded"}
+            )
+        except Exception as e:
+            st.session_state.results_delivery_succeeded = False
+            st.session_state.results_delivery_error = str(e)
+            log_event(
+                "results_delivery_completed",
+                {
+                    "method": "email",
+                    "status": "failed",
+                    "error_type": type(e).__name__
+                }
+            )
+
+    if st.session_state.results_delivery_succeeded:
+        st.info("âœ… Your decisions have been automatically recorded.")
+    else:
+        st.error(
+            "Your result was saved locally, but email delivery failed. "
+            "Please notify the research team before closing this window."
+        )
 
     st.write("You may now close this window.")
     st.stop()
@@ -658,12 +1063,27 @@ if st.session_state.scenario_ended:
 # ======================================================
 # 8. MAIN DASHBOARD
 # ======================================================
-st.header(f"{TITLE} — {get_time_label()}")
+st.header(f"{TITLE} â€” {get_time_label()}")
 
 # Display information panel at TOP if tile is open
 if st.session_state.open_tile:
     tile = TILES[st.session_state.open_tile]
     content = tile["content"].get(str(CURRENT_TIME_VAL))
+
+    if not st.session_state.current_tile_display_logged:
+        log_event(
+            "tile_displayed_server",
+            {
+                "id": st.session_state.current_tile_id,
+                "label": tile["label"],
+                "tile_instance_id": st.session_state.current_tile_instance_id,
+                "content_sha256": content_sha256(content),
+                "measurement_semantics": (
+                    "server_render_started; browser visibility is not yet measured"
+                )
+            }
+        )
+        st.session_state.current_tile_display_logged = True
 
     # Information panel with prominent styling header
     st.markdown(
@@ -676,20 +1096,34 @@ if st.session_state.open_tile:
         for c in tile["contacts"]:
             if st.button(f"Message {c['name']}", key=f"soc_{c['id']}", use_container_width=True):
                 if st.session_state.current_social_contact:
-                    log_event(
-                        "social_message_time_spent",
-                        {
-                            "contact": st.session_state.current_social_contact,
-                            "duration_seconds": (
-                                    datetime.datetime.now() - st.session_state.social_open_time
-                            ).total_seconds()
-                        }
-                    )
+                    finalize_current_social("contact_switched")
                 reply = CONTROL["social_response_policies"][c["response_policy"]][str(CURRENT_TIME_VAL)]
                 st.session_state.current_social_contact = c["name"]
-                st.session_state.social_open_time = datetime.datetime.now()
-                log_event("social_message_opened", {"contact": c["name"]})
-                log_event("social_interaction", {"to": c["name"], "reply": reply})
+                st.session_state.social_open_perf = time.perf_counter()
+                st.session_state.current_social_instance_id = str(uuid.uuid4())
+                log_event(
+                    "social_contact_requested",
+                    {
+                        "contact": c["name"],
+                        "contact_id": c["id"],
+                        "social_instance_id": (
+                            st.session_state.current_social_instance_id
+                        ),
+                        "response_policy": c["response_policy"]
+                    }
+                )
+                log_event(
+                    "social_reply_displayed_server",
+                    {
+                        "contact": c["name"],
+                        "contact_id": c["id"],
+                        "social_instance_id": (
+                            st.session_state.current_social_instance_id
+                        ),
+                        "reply": reply,
+                        "reply_sha256": content_sha256(reply)
+                    }
+                )
                 st.info(reply)
     else:
         if content is not None:
@@ -745,17 +1179,38 @@ for row in range(4):
             ):
 
                 # Open new tile
+                was_revisit = tid in st.session_state.tiles_opened_this_step
+                st.session_state.tile_view_sequence_this_step += 1
                 st.session_state.open_tile = tid
                 st.session_state.current_tile_id = tid
-                st.session_state.tile_open_time = datetime.datetime.now()
+                st.session_state.tile_open_perf = time.perf_counter()
+                st.session_state.current_tile_instance_id = str(uuid.uuid4())
+                st.session_state.current_tile_display_logged = False
                 st.session_state.tiles_opened_this_step.add(tid)
                 st.session_state.viewed_updates.add(tid)
 
                 # Reset social contact tracking
                 st.session_state.current_social_contact = None
-                st.session_state.social_open_time = None
+                st.session_state.social_open_perf = None
+                st.session_state.current_social_instance_id = None
 
-                log_event("tile_viewed", {"id": tid, "label": label})
+                tile_content = TILES[tid]["content"].get(str(CURRENT_TIME_VAL))
+                log_event(
+                    "tile_requested",
+                    {
+                        "id": tid,
+                        "label": label,
+                        "tile_instance_id": (
+                            st.session_state.current_tile_instance_id
+                        ),
+                        "view_sequence_in_step": (
+                            st.session_state.tile_view_sequence_this_step
+                        ),
+                        "was_revisit": was_revisit,
+                        "had_new_update": has_new_update(tid),
+                        "content_sha256": content_sha256(tile_content)
+                    }
+                )
                 st.rerun()
 
 # ======================================================
@@ -782,17 +1237,27 @@ if st.button(
     # Defensive finalization: normally the tile was already closed explicitly.
     finalize_open_information("assessment_started")
 
+    dashboard_duration = (
+        time.perf_counter() - st.session_state.dashboard_start_perf
+    )
     log_event(
         "dashboard_time_spent",
         {
-            "duration_seconds": (
-                    datetime.datetime.now()
-                    - st.session_state.dashboard_start_time
-            ).total_seconds()
+            "server_elapsed_seconds": dashboard_duration,
+            "timer_source": "server_monotonic_includes_render_latency",
+            "includes_tile_and_social_time": True
+        }
+    )
+    log_event(
+        "phase_exited",
+        {
+            "phase": "dashboard",
+            "server_elapsed_seconds": dashboard_duration
         }
     )
     st.session_state.in_assessment = True
-    st.session_state.assessment_start_time = datetime.datetime.now()
+    st.session_state.current_phase = "assessment"
+    st.session_state.assessment_start_perf = time.perf_counter()
+    log_event("phase_entered", {"phase": "assessment"})
 
     st.rerun()
-

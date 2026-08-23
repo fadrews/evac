@@ -1,6 +1,6 @@
 # v2.5 Iron Fire adaptation - configurable time-step duration
-#backward compatible to original scenario
-
+#lasted version of the code updated on github as evactracer.py
+#backwards compatible
 import streamlit as st
 import json
 import datetime
@@ -231,28 +231,47 @@ def email_results_file(results_path=None):
 # ======================================================
 # 4. HELPERS
 # ======================================================
-def close_current_tile():
-    """Helper function to log timing when switching tiles"""
-    if st.session_state.current_tile_id:
+def clear_open_information_state():
+    """Clear all tile and social-message display and timing state."""
+    st.session_state.open_tile = None
+    st.session_state.current_tile_id = None
+    st.session_state.tile_open_time = None
+    st.session_state.current_social_contact = None
+    st.session_state.social_open_time = None
+
+
+def finalize_open_information(reason):
+    """Log the current information exposure, then close and clear it."""
+    if (
+        st.session_state.current_tile_id is not None
+        and st.session_state.tile_open_time is not None
+    ):
         log_event(
             "tile_time_spent",
             {
                 "id": st.session_state.current_tile_id,
                 "duration_seconds": (
                         datetime.datetime.now() - st.session_state.tile_open_time
-                ).total_seconds()
+                ).total_seconds(),
+                "close_reason": reason
             }
         )
-    if st.session_state.current_social_contact:
+    if (
+        st.session_state.current_social_contact is not None
+        and st.session_state.social_open_time is not None
+    ):
         log_event(
             "social_message_time_spent",
             {
                 "contact": st.session_state.current_social_contact,
                 "duration_seconds": (
                         datetime.datetime.now() - st.session_state.social_open_time
-                ).total_seconds()
+                ).total_seconds(),
+                "close_reason": reason
             }
         )
+
+    clear_open_information_state()
 
 
 def has_new_update(tid):
@@ -572,6 +591,12 @@ if st.session_state.in_decision:
 
         st.session_state.in_decision = False
         st.session_state.cached_assessment = None
+
+        # Information panels must never carry over into a new scenario step.
+        # Exposure should already have been finalized before assessment; this
+        # is a defensive state reset and intentionally does not log again.
+        clear_open_information_state()
+
         st.session_state.time_index += 1
 
         # A new scenario step receives a fresh action budget. Repeatable actions
@@ -685,14 +710,7 @@ if st.session_state.open_tile:
 
     # Close button - prominent red styling
     if st.button("Close", key="close_modal", use_container_width=False):
-        # Log time for currently open tile/contact before closing
-        close_current_tile()
-
-        st.session_state.open_tile = None
-        st.session_state.current_tile_id = None
-        st.session_state.tile_open_time = None
-        st.session_state.current_social_contact = None
-        st.session_state.social_open_time = None
+        finalize_open_information("user_closed")
         st.rerun()
 
     st.divider()
@@ -745,9 +763,24 @@ for row in range(4):
 # ======================================================
 st.divider()
 
-if st.button("Go to Assessment", disabled=len(st.session_state.tiles_opened_this_step) == 0, use_container_width=True):
-    # Log time for currently open tile/contact before transitioning
-    close_current_tile()
+assessment_disabled = (
+    len(st.session_state.tiles_opened_this_step) == 0
+    or st.session_state.open_tile is not None
+)
+
+if st.session_state.open_tile is not None:
+    st.caption(
+        "Close the current information source before proceeding "
+        "to the assessment."
+    )
+
+if st.button(
+    "Go to Assessment",
+    disabled=assessment_disabled,
+    use_container_width=True
+):
+    # Defensive finalization: normally the tile was already closed explicitly.
+    finalize_open_information("assessment_started")
 
     log_event(
         "dashboard_time_spent",
@@ -760,12 +793,6 @@ if st.button("Go to Assessment", disabled=len(st.session_state.tiles_opened_this
     )
     st.session_state.in_assessment = True
     st.session_state.assessment_start_time = datetime.datetime.now()
-
-    # Reset tile/contact tracking
-    st.session_state.current_tile_id = None
-    st.session_state.tile_open_time = None
-    st.session_state.current_social_contact = None
-    st.session_state.social_open_time = None
 
     st.rerun()
 

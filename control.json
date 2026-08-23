@@ -191,8 +191,7 @@
           "text": "Flames visible nearby."
         },
         "0": {
-          "text": "Fire entering the neighborhood.",
-          "image": "images/wildfire_near.jpg"
+          "text": "Fire is destroying homes in the neighborhood."
         }
       }
     },
@@ -220,6 +219,9 @@
         "-1": {
           "text": "Mandatory Evacuation Order expanded. Leave immediately.",
           "image": "images/evac_notice.jpg"
+        },
+        "0": {
+          "text": "Mandatory Evacuation Order in place. Leave if you can."
         }
       }
     },
@@ -243,6 +245,9 @@
         },
         "-1": {
           "text": "Neighbor Amy: We just left."
+        },
+        "0": {
+          "text": "Neighbor Mary: We got out just in time."
         }
       }
     },
@@ -267,6 +272,9 @@
         },
         "-1": {
           "text": "Breaking: Major roads closing due to fire activity."
+        },
+        "0": {
+          "text": "All roads are closed."
         }
       }
     },
@@ -292,6 +300,9 @@
         },
         "-1": {
           "text": "Gridlock on major exits from the area."
+        },
+        "0": {
+          "text": "People abandon their cars and walk."
         }
       }
     },
@@ -318,6 +329,9 @@
         },
         "-1": {
           "text": "Widespread power and communication outages in your community."
+        },
+        "0": {
+          "text": "There is no power and cell phone reception is unreliable."
         }
       }
     },
@@ -342,6 +356,9 @@
         },
         "-1": {
           "text": "The fire is entering your neighborhood and spreads rapidly."
+        },
+        "0": {
+          "text": "Houses in the neighborhood are burning."
         }
       }
     },
@@ -367,6 +384,9 @@
         },
         "-1": {
           "text": "Breathing difficult without protection."
+        },
+        "0": {
+          "text": "The sky is black and it is dark from the thick smoke."
         }
       }
     },
@@ -391,6 +411,9 @@
         },
         "-1": {
           "text": "All nearby shelters full. Consider staying with friends or family."
+        },
+        "0": {
+          "text": "No shelter space available."
         }
       }
     },
@@ -415,6 +438,9 @@
         },
         "-1": {
           "text": "No emergency crews visible in residential streets."
+        },
+        "0": {
+          "text": "No crews are visible."
         }
       }
     },
@@ -439,6 +465,9 @@
         },
         "-1": {
           "text": "Only a few cars remain in the neighborhood."
+        },
+        "0": {
+          "text": "Everyone has left."
         }
       }
     },
@@ -480,6 +509,9 @@
         },
         "-1": {
           "text": "You can message people you know."
+        },
+        "0": {
+          "text": "You can message people you know."
         }
       }
     },
@@ -504,6 +536,9 @@
         },
         "-1": {
           "text": "Bus service suspended due to road closures."
+        },
+        "0": {
+          "text": "No updates provided."
         }
       }
     },
@@ -528,6 +563,9 @@
         },
         "-1": {
           "text": "Multiple routes marked closed or unreliable."
+        },
+        "0": {
+          "text": "All routes are closed."
         }
       }
     },
@@ -552,6 +590,9 @@
         },
         "-1": {
           "text": "Evacuating neighbors leave most belongings."
+        },
+        "0": {
+          "text": "Everyone has left."
         }
       }
     },
@@ -576,6 +617,9 @@
         },
         "-1": {
           "text": "Report suggests the neighborhood is safe."
+        },
+        "0": {
+          "text": "No new reports available."
         }
       }
     }
@@ -587,7 +631,8 @@
       "-4": "Some people nearby are packing, but I haven't decided yet.",
       "-3": "Traffic is starting to look bad. If you go, sooner is probably better.",
       "-2": "This is getting serious. I think leaving is the safer option.",
-      "-1": "You really should leave now if you haven't already."
+      "-1": "You really should leave now if you haven't already.",
+      "0": "I hope you have left already."
     },
     "skeptical_friend": {
       "-6": "Fires happen every year. I wouldn't stress yet.",
@@ -595,7 +640,8 @@
       "-4": "I'm staying put. The fire still seems far.",
       "-3": "Traffic is worse than the fire in my opinion.",
       "-2": "I'm still not convinced evacuation is necessary.",
-      "-1": "If you're calm at home, staying might be fine."
+      "-1": "If you're calm at home, staying might be fine.",
+      "0": "I would stay."
     },
     "alarmist_friend": {
       "-6": "I don't like this at all. Fires spread fast.",
@@ -603,7 +649,8 @@
       "-4": "If you wait too long, roads will be packed.",
       "-3": "I would leave now if you can.",
       "-2": "This is dangerous. You should be evacuating.",
-      "-1": "Please tell me you're already on your way out."
+      "-1": "Please tell me you're already on your way out.",
+      "0": "Please tell me you are safe away from thefire."
     }
   },
   "decision_time": {

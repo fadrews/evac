@@ -1,4 +1,5 @@
-# v2.5 - Repeatable preparation actions + simulated time budget
+# v2.5 Iron Fire adaptation - configurable time-step duration
+#backward compatible to original scenario
 
 import streamlit as st
 import json
@@ -30,6 +31,7 @@ def load_control():
 CONTROL = load_control()
 TITLE = CONTROL.get("title", "Research Scenario")
 TIME_STEPS = CONTROL.get("time_steps", [])
+TIME_STEP_MINUTES = int(CONTROL.get("time_step_minutes", 60))
 TILES = CONTROL.get("tiles", {})
 PREP_ACTIONS = CONTROL.get("preparation_actions", [])
 
@@ -40,6 +42,10 @@ MAX_MINUTES = int(DECISION_TIME.get("maximum_minutes", 70))
 
 if MAX_MINUTES < NOMINAL_MINUTES:
     st.error("control.json error: maximum_minutes must be >= nominal_minutes.")
+    st.stop()
+
+if TIME_STEP_MINUTES <= 0:
+    st.error("control.json error: time_step_minutes must be greater than zero.")
     st.stop()
 
 SUBJECTIVE_VARS = [
@@ -66,6 +72,8 @@ def init_state():
         st.session_state.contact_collected = False
         st.session_state.show_intro = True
         st.session_state.scenario_ended = False
+        st.session_state.final_choice = None
+        st.session_state.scenario_end_reason = None
 
         # time
         st.session_state.time_index = 0
@@ -118,6 +126,10 @@ def ensure_new_state_defaults():
         st.session_state.prep_action_counts = {}
     if "completed_prep_actions" not in st.session_state:
         st.session_state.completed_prep_actions = set()
+    if "final_choice" not in st.session_state:
+        st.session_state.final_choice = None
+    if "scenario_end_reason" not in st.session_state:
+        st.session_state.scenario_end_reason = None
 
 
 init_state()
@@ -254,18 +266,18 @@ def has_new_update(tid):
 
 
 def is_end_of_time_window():
-    start = datetime.datetime.strptime(
-        CONTROL.get("start_time_display", "14:00"), "%H:%M"
-    )
-    current = start + timedelta(hours=st.session_state.time_index)
-    return current.hour >= 20
+    """End after the final configured time step, independent of clock time."""
+    return st.session_state.time_index >= len(TIME_STEPS)
 
 
 def get_time_label():
     start = datetime.datetime.strptime(
         CONTROL.get("start_time_display", "14:00"), "%H:%M"
     )
-    return (start + timedelta(hours=st.session_state.time_index)).strftime("%I:%M %p")
+    current = start + timedelta(
+        minutes=TIME_STEP_MINUTES * st.session_state.time_index
+    )
+    return current.strftime("%I:%M %p")
 
 
 def prep_available(action):
@@ -502,9 +514,12 @@ if st.session_state.in_decision:
 
     st.markdown("### Evacuation decision")
 
-    evac_all = st.button("Evacuate all")
+    is_final_step = st.session_state.time_index == len(TIME_STEPS) - 1
+
+    evac_all = st.button("Evacuate now")
     evac_fam = st.button("Ask a neighbor to evacuate kids and dog")
-    stay = st.button("Stay for now")
+    stay_label = "Stay despite GO order" if is_final_step else "Stay and continue"
+    stay = st.button(stay_label)
 
     if evac_all or evac_fam or stay:
         log_event(
@@ -517,6 +532,7 @@ if st.session_state.in_decision:
             choice = "evacuate_all"
         if evac_fam:
             choice = "evacuate_family"
+        st.session_state.final_choice = choice
 
         # Preserve action order and cumulative simulated time in the hourly log.
         action_sequence = []
@@ -537,6 +553,8 @@ if st.session_state.in_decision:
         log_event(
             "hourly_decision",
             {
+                "time_step_minutes": TIME_STEP_MINUTES,
+                "simulated_time": get_time_label(),
                 "scores": st.session_state.cached_assessment,
                 "choice": choice,
                 "prep_action_sequence": action_sequence,
@@ -556,8 +574,8 @@ if st.session_state.in_decision:
         st.session_state.cached_assessment = None
         st.session_state.time_index += 1
 
-        # A new scenario hour receives a fresh action budget. Repeatable actions
-        # can reappear if their JSON availability window still includes the new step.
+        # A new scenario step receives a fresh action budget. Repeatable actions
+        # can reappear if their JSON availability window includes the new step.
         st.session_state.prep_actions_this_step = []
         st.session_state.prep_minutes_this_step = 0
 
@@ -569,6 +587,19 @@ if st.session_state.in_decision:
 
         if choice in ["evacuate_all", "evacuate_family"]:
             st.session_state.scenario_ended = True
+            st.session_state.scenario_end_reason = "evacuated"
+        elif is_final_step:
+            st.session_state.scenario_end_reason = "stayed_after_final_go"
+
+        if st.session_state.scenario_ended:
+            log_event(
+                "scenario_outcome",
+                {
+                    "final_choice": st.session_state.final_choice,
+                    "end_reason": st.session_state.scenario_end_reason,
+                    "final_simulated_time": "08:00 PM"
+                }
+            )
 
         st.rerun()
     st.stop()
@@ -578,7 +609,12 @@ if st.session_state.in_decision:
 # ======================================================
 if st.session_state.scenario_ended:
     st.header("Scenario Complete")
-    st.success("Thank you for participating in this evacuation scenario!")
+    if st.session_state.scenario_end_reason == "evacuated":
+        st.success("Your decision to evacuate has been recorded.")
+    elif st.session_state.scenario_end_reason == "stayed_after_final_go":
+        st.success("Your decision to stay after the final GO alert has been recorded.")
+    else:
+        st.success("Thank you for participating in this evacuation scenario!")
 
     # Email results
     results_file = f"results/{st.session_state.session_id}.json"
@@ -732,3 +768,4 @@ if st.button("Go to Assessment", disabled=len(st.session_state.tiles_opened_this
     st.session_state.social_open_time = None
 
     st.rerun()
+

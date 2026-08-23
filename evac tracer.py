@@ -1,9 +1,12 @@
 # Wildfire Evacuation Decision Simulator
-# Version 2.6.1 - original 60-minute scenario logging and measurement revision
+# Version 2.6.2 - decision-process observability revision
 #
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
 # explicit simulated decision times, and improved interaction-state logging.
+# Version 2.6.2 adds non-reactive opportunity-set and decision-state-change
+# logging. These records are for later analysis only and do not warn, verify,
+# constrain, or otherwise alter participant decisions.
 
 import streamlit as st
 import json
@@ -25,8 +28,8 @@ st.set_page_config(layout="wide")
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "2.6.1"
-RESULT_SCHEMA_VERSION = "3.1"
+APP_VERSION = "2.6.2"
+RESULT_SCHEMA_VERSION = "3.2"
 CONTROL_PATH = Path("control.json")
 
 
@@ -230,6 +233,9 @@ def init_state():
         st.session_state.cached_assessment_interactions = None
         st.session_state.assessment_interactions = {}
         st.session_state.decision_process_state = None
+        st.session_state.decision_process_state_interactions = {}
+        st.session_state.decision_screen_presented_steps = set()
+        st.session_state.scenario_step_started_steps = set()
 
         # preparation
         # Non-repeatable actions that have been completed at any prior time.
@@ -260,10 +266,16 @@ def ensure_new_state_defaults():
         st.session_state.final_choice = None
     if "scenario_end_reason" not in st.session_state:
         st.session_state.scenario_end_reason = None
+    if "decision_process_state_interactions" not in st.session_state:
+        st.session_state.decision_process_state_interactions = {}
+    if "decision_screen_presented_steps" not in st.session_state:
+        st.session_state.decision_screen_presented_steps = set()
+    if "scenario_step_started_steps" not in st.session_state:
+        st.session_state.scenario_step_started_steps = set()
 
 
 def reset_incompatible_session_state():
-    """Never mix pre-3.0 session state with the revised result schema."""
+    """Never mix browser session state from incompatible result schemas."""
     if (
         "session_id" in st.session_state
         and st.session_state.get("session_schema_version") != RESULT_SCHEMA_VERSION
@@ -568,6 +580,62 @@ def mark_assessment_interaction(variable_id):
         record["first_interaction_at_utc"] = utc_now_iso()
 
 
+def decision_process_widget_key():
+    return f"decision_process_state_{st.session_state.time_index}"
+
+
+def decision_process_interaction_record():
+    """Return the non-reactive interaction record for the current step."""
+    return st.session_state.decision_process_state_interactions.setdefault(
+        st.session_state.time_index,
+        {
+            "was_interacted_with": False,
+            "change_count": 0,
+            "first_interaction_at_utc": None,
+            "last_interaction_at_utc": None,
+            "current_value": "__select__",
+            "history": []
+        }
+    )
+
+
+def mark_decision_process_state_interaction():
+    """Log decision-stage changes without validating or reacting to them."""
+    selected_value = st.session_state.get(
+        decision_process_widget_key(),
+        "__select__"
+    )
+    record = decision_process_interaction_record()
+    previous_value = record["current_value"]
+    if selected_value == previous_value:
+        return
+
+    changed_at = utc_now_iso()
+    record["was_interacted_with"] = True
+    record["change_count"] += 1
+    if record["first_interaction_at_utc"] is None:
+        record["first_interaction_at_utc"] = changed_at
+    record["last_interaction_at_utc"] = changed_at
+    record["current_value"] = selected_value
+    record["history"].append({
+        "change_sequence": record["change_count"],
+        "from": previous_value,
+        "to": selected_value,
+        "changed_at_utc": changed_at
+    })
+
+    log_event(
+        "decision_process_state_changed",
+        {
+            "change_sequence_in_step": record["change_count"],
+            "from": previous_value,
+            "to": selected_value,
+            "to_label": DECISION_PROCESS_STATES.get(selected_value),
+            "logging_is_non_reactive": True
+        }
+    )
+
+
 def prep_available(action):
     return (
             CURRENT_TIME_VAL is not None and
@@ -616,6 +684,69 @@ def can_perform_action(action):
 
 def get_prep_action(action_id):
     return next((a for a in PREP_ACTIONS if a["id"] == action_id), None)
+
+
+def preparation_opportunity_snapshot():
+    """Describe the options shown now without changing their availability."""
+    snapshot = []
+    for action in PREP_ACTIONS:
+        if not prep_available(action):
+            continue
+
+        prerequisites = list(action.get("prerequisites", []))
+        missing_prerequisites = [
+            prerequisite_id
+            for prerequisite_id in prerequisites
+            if prerequisite_id not in st.session_state.completed_prep_actions
+        ]
+        duration = int(action.get("estimated_time_minutes", 0))
+        snapshot.append({
+            "action_id": action["id"],
+            "action_label": action["label"],
+            "estimated_time_minutes": duration,
+            "repeatable": is_repeatable(action),
+            "completed_before_or_during_period": permanently_completed(action),
+            "performed_this_step": performed_this_step(action),
+            "fits_remaining_time": duration <= minutes_remaining_to_cap(),
+            "selectable_at_snapshot": can_perform_action(action),
+            "prerequisites": prerequisites,
+            "prerequisites_met": not missing_prerequisites,
+            "missing_prerequisites": missing_prerequisites,
+            "prerequisite_check_is_logging_only": True
+        })
+    return snapshot
+
+
+def log_scenario_step_started_once():
+    """Create one opportunity-set record for each displayed scenario step."""
+    step_index = st.session_state.time_index
+    if step_index in st.session_state.scenario_step_started_steps:
+        return
+
+    st.session_state.scenario_step_started_steps.add(step_index)
+    sorted_tile_ids = sorted(
+        TILES.keys(),
+        key=lambda value: (
+            (0, int(value)) if str(value).isdigit() else (1, str(value))
+        )
+    )
+    log_event(
+        "scenario_step_started",
+        {
+            "scheduled_period_start": scheduled_time_label(),
+            "time_step_minutes": TIME_STEP_MINUTES,
+            "nominal_minutes": NOMINAL_MINUTES,
+            "maximum_minutes": MAX_MINUTES,
+            "available_information_source_ids": sorted_tile_ids,
+            "available_preparation_action_ids": [
+                action["action_id"]
+                for action in preparation_opportunity_snapshot()
+            ],
+            "completed_nonrepeatable_actions_at_step_start": sorted(
+                st.session_state.completed_prep_actions
+            )
+        }
+    )
 
 
 # ======================================================
@@ -760,6 +891,41 @@ if st.session_state.in_decision:
     remaining_hour = minutes_remaining_in_period()
     remaining_cap = minutes_remaining_to_cap()
 
+    # Capture the initial opportunity set once per scenario step. This is an
+    # analysis record only; it does not modify, hide, recommend, or validate
+    # any preparation or evacuation option.
+    if (
+        st.session_state.time_index
+        not in st.session_state.decision_screen_presented_steps
+    ):
+        st.session_state.decision_screen_presented_steps.add(
+            st.session_state.time_index
+        )
+        log_event(
+            "decision_options_presented",
+            {
+                "scheduled_period_start": scheduled_time_label(),
+                "time_budget": {
+                    "time_step_minutes": TIME_STEP_MINUTES,
+                    "nominal_minutes": NOMINAL_MINUTES,
+                    "maximum_minutes": MAX_MINUTES,
+                    "minutes_used_at_snapshot": used_minutes,
+                    "minutes_remaining_at_snapshot": remaining_cap
+                },
+                "preparation_options": preparation_opportunity_snapshot(),
+                "decision_process_options": [
+                    {"id": state_id, "label": state_label}
+                    for state_id, state_label in DECISION_PROCESS_STATES.items()
+                ],
+                "evacuation_choice_options": [
+                    "evacuate_all",
+                    "evacuate_family",
+                    "stay"
+                ],
+                "logging_is_non_reactive": True
+            }
+        )
+
     t1, t2, t3 = st.columns(3)
     t1.metric("Minutes used", f"{used_minutes} min")
     t2.metric("Minutes left in period", f"{remaining_hour} min")
@@ -889,7 +1055,8 @@ if st.session_state.in_decision:
             if value == "__select__"
             else DECISION_PROCESS_STATES[value]
         ),
-        key=f"decision_process_state_{st.session_state.time_index}"
+        key=decision_process_widget_key(),
+        on_change=mark_decision_process_state_interaction
     )
     process_state_selected = selected_process_state != "__select__"
 
@@ -948,6 +1115,7 @@ if st.session_state.in_decision:
         decision_state_choice_consistent = (
             choice_is_evacuation == state_is_evacuation
         )
+        process_interaction_record = decision_process_interaction_record()
 
         decision_payload = {
             "time_step_minutes": TIME_STEP_MINUTES,
@@ -966,6 +1134,32 @@ if st.session_state.in_decision:
             "decision_state_choice_consistent": (
                 decision_state_choice_consistent
             ),
+            "decision_process_state_interactions": {
+                "was_interacted_with": process_interaction_record[
+                    "was_interacted_with"
+                ],
+                "change_count": process_interaction_record["change_count"],
+                "first_interaction_at_utc": process_interaction_record[
+                    "first_interaction_at_utc"
+                ],
+                "last_interaction_at_utc": process_interaction_record[
+                    "last_interaction_at_utc"
+                ],
+                "history": list(process_interaction_record["history"])
+            },
+            "information_acquisition_summary": {
+                "unique_information_source_ids_opened": sorted(
+                    st.session_state.tiles_opened_this_step,
+                    key=lambda value: (
+                        (0, int(value))
+                        if str(value).isdigit()
+                        else (1, str(value))
+                    )
+                ),
+                "information_source_view_count": (
+                    st.session_state.tile_view_sequence_this_step
+                )
+            },
             "prep_action_sequence": action_sequence,
             "prep_minutes_this_step": simulated_offset,
             "minutes_beyond_nominal_period": max(
@@ -1101,6 +1295,7 @@ if st.session_state.scenario_ended:
 # 8. MAIN DASHBOARD
 # ======================================================
 st.header(f"{TITLE} â€” {get_time_label()}")
+log_scenario_step_started_once()
 
 # Display information panel at TOP if tile is open
 if st.session_state.open_tile:

@@ -656,6 +656,6 @@
   },
   "decision_time": {
     "nominal_minutes": 60,
-    "maximum_minutes": 70
+    "maximum_minutes": 60
   }
 }

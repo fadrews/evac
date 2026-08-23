@@ -1,5 +1,7 @@
 {
   "title": "Decision making",
+  "scenario_id": "original_wildfire",
+  "scenario_version": "2.6-logging-pilot",
   "irb_consent": {
     "title": "Research Study Information",
     "text": [
@@ -121,7 +123,7 @@
       "repeatable": false
     },
     {
-      "id": "Evac route",
+      "id": "evac_route",
       "label": "Check / select evacuation route",
       "description": "Review current road conditions and select a primary route and at least one alternative.",
       "available_from": -6,
@@ -130,7 +132,7 @@
       "repeatable": true
     },
     {
-      "id": "Communications",
+      "id": "communications",
       "label": "Prepare communications",
       "description": "Charge phones/power bank and send the household's intended destination/plan to the partner or another contact.",
       "available_from": -6,
@@ -139,7 +141,7 @@
       "repeatable": false
     },
     {
-      "id": "Clothing prep",
+      "id": "smoke_clothing",
       "label": "Prepare for smoke and embers",
       "description": "Put on appropriate clothing and obtain respiratory protection for you and the children.",
       "available_from": -4,
@@ -148,7 +150,7 @@
       "repeatable": false
     },
     {
-      "id": "Final check",
+      "id": "final_household_check",
       "label": "Final Household Check",
       "description": "Check children, dog, medications, phones, keys, wallet/IDs, and go-bag.",
       "available_from": -5,
@@ -222,7 +224,7 @@
           "image": "images/evac_notice.jpg"
         },
         "0": {
-          "text": "Mandatory Evacuation Order in place. Leave immediately."
+          "text": "Mandatory Evacuation Order in place. Leave if you can."
         }
       }
     },
@@ -651,7 +653,7 @@
       "-3": "I would leave now if you can.",
       "-2": "This is dangerous. You should be evacuating.",
       "-1": "Please tell me you're already on your way out.",
-      "0": "Please tell me you are safe away from the fire."
+      "0": "Please tell me you are safe away from thefire."
     }
   },
   "decision_time": {

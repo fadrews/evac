@@ -37,6 +37,7 @@
     ]
   },
   "start_time_display": "14:00",
+  "time_step_minutes": 60,
   "time_steps": [
     -6,
     -5,
@@ -221,7 +222,7 @@
           "image": "images/evac_notice.jpg"
         },
         "0": {
-          "text": "Mandatory Evacuation Order in place. Leave if you can."
+          "text": "Mandatory Evacuation Order in place. Leave immediately."
         }
       }
     },
@@ -650,7 +651,7 @@
       "-3": "I would leave now if you can.",
       "-2": "This is dangerous. You should be evacuating.",
       "-1": "Please tell me you're already on your way out.",
-      "0": "Please tell me you are safe away from thefire."
+      "0": "Please tell me you are safe away from the fire."
     }
   },
   "decision_time": {

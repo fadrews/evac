@@ -728,7 +728,7 @@ if st.session_state.in_assessment:
 # if there is no description in json it may show an empty line and an option
 # ======================================================
 if st.session_state.in_decision:
-    st.subheader(f"Decisions â€” {get_time_label()}")
+    st.subheader(f"Decisions — {get_time_label()}")
 
     st.markdown("### Preparation actions")
 
@@ -769,7 +769,7 @@ if st.session_state.in_decision:
             duration = int(selected_action.get("estimated_time_minutes", 0))
             running_total += duration
             st.write(
-                f"{seq_num}. {selected_action['label']} â€” {duration} min "
+                f"{seq_num}. {selected_action['label']} — {duration} min "
                 f"(cumulative: {running_total} min)"
             )
 
@@ -1047,7 +1047,7 @@ if st.session_state.scenario_ended:
             )
 
     if st.session_state.results_delivery_succeeded:
-        st.info("âœ… Your decisions have been automatically recorded.")
+        st.info("✅ Your decisions have been automatically recorded.")
     else:
         st.error(
             "Your result was saved locally, but email delivery failed. "
@@ -1063,7 +1063,7 @@ if st.session_state.scenario_ended:
 # ======================================================
 # 8. MAIN DASHBOARD
 # ======================================================
-st.header(f"{TITLE} â€” {get_time_label()}")
+st.header(f"{TITLE} — {get_time_label()}")
 
 # Display information panel at TOP if tile is open
 if st.session_state.open_tile:

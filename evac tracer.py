@@ -1,5 +1,5 @@
 # Wildfire Evacuation Decision Simulator
-# Version 2.6 - original 60-minute scenario logging and measurement revision
+# Version 2.6.1 - original 60-minute scenario logging and measurement revision
 #
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
@@ -25,8 +25,8 @@ st.set_page_config(layout="wide")
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "2.6"
-RESULT_SCHEMA_VERSION = "3.0"
+APP_VERSION = "2.6.1"
+RESULT_SCHEMA_VERSION = "3.1"
 CONTROL_PATH = Path("control.json")
 
 
@@ -88,6 +88,27 @@ if SCENARIO_ID != "original_wildfire":
         "control file. The Iron Fire scenario is intentionally excluded."
     )
     st.stop()
+
+ACTION_IDS = [action.get("id") for action in PREP_ACTIONS]
+if len(ACTION_IDS) != len(set(ACTION_IDS)) or any(not action_id for action_id in ACTION_IDS):
+    st.error("control.json error: preparation action IDs must be present and unique.")
+    st.stop()
+
+ACTION_ID_SET = set(ACTION_IDS)
+for action in PREP_ACTIONS:
+    prerequisites = action.get("prerequisites", [])
+    invalid_prerequisites = [
+        prerequisite_id
+        for prerequisite_id in prerequisites
+        if prerequisite_id not in ACTION_ID_SET or prerequisite_id == action["id"]
+    ]
+    if invalid_prerequisites:
+        st.error(
+            "control.json error: action "
+            f"'{action['id']}' has invalid prerequisites: "
+            f"{invalid_prerequisites}."
+        )
+        st.stop()
 
 ASSESSMENT_VARIABLES = [
     {
@@ -165,8 +186,7 @@ def init_state():
         st.session_state.completion_status = "active"
         st.session_state.event_sequence = 0
         st.session_state.logs = []
-        st.session_state.results_delivery_attempted = False
-        st.session_state.results_delivery_succeeded = False
+        st.session_state.results_delivery_status = "not_attempted"
         st.session_state.results_delivery_error = None
 
         # flow
@@ -351,8 +371,7 @@ def result_document():
         "completion": {
             "final_choice": st.session_state.final_choice,
             "end_reason": st.session_state.scenario_end_reason,
-            "delivery_attempted": st.session_state.results_delivery_attempted,
-            "delivery_succeeded": st.session_state.results_delivery_succeeded,
+            "delivery_status": st.session_state.results_delivery_status,
             "delivery_error": st.session_state.results_delivery_error
         }
     }
@@ -387,16 +406,22 @@ def log_event(event, payload):
 
 def save_contact_information(email, phone):
     """Keep identifiable contact information outside the behavioral event log."""
+    email = email.strip()
+    phone = phone.strip()
+    if not email and not phone:
+        return False
+
     contact_record = {
         "study_session_id": st.session_state.session_id,
         "collected_at_utc": utc_now_iso(),
-        "email": email.strip(),
-        "phone": phone.strip()
+        "email": email,
+        "phone": phone
     }
     atomic_write_json(
         Path("contact_results") / f"{st.session_state.session_id}.json",
         contact_record
     )
+    return True
 
 
 def email_results_file(results_path=None):
@@ -614,14 +639,15 @@ if not st.session_state.contact_collected:
     email = st.text_input("Email (optional)")
     phone = st.text_input("Phone (optional)")
     if st.button("Continue"):
-        save_contact_information(email, phone)
+        contact_record_created = save_contact_information(email, phone)
         st.session_state.contact_collected = True
         log_event(
             "contact_collected",
             {
                 "email_provided": bool(email.strip()),
                 "phone_provided": bool(phone.strip()),
-                "pii_stored_separately": True
+                "pii_record_created": contact_record_created,
+                "pii_stored_separately": contact_record_created
             }
         )
         st.rerun()
@@ -692,13 +718,6 @@ if st.session_state.in_assessment:
             }
 
         log_event(
-            "assessment_time_spent",
-            {
-                "server_elapsed_seconds": assessment_duration,
-                "timer_source": "server_monotonic_includes_render_latency"
-            }
-        )
-        log_event(
             "assessment_submitted",
             {
                 "scores": results,
@@ -710,7 +729,9 @@ if st.session_state.in_assessment:
             "phase_exited",
             {
                 "phase": "assessment",
-                "server_elapsed_seconds": assessment_duration
+                "server_elapsed_seconds": assessment_duration,
+                "timer_source": "server_monotonic_includes_render_latency",
+                "includes_nested_information_time": False
             }
         )
         st.session_state.cached_assessment = results
@@ -728,7 +749,7 @@ if st.session_state.in_assessment:
 # if there is no description in json it may show an empty line and an option
 # ======================================================
 if st.session_state.in_decision:
-    st.subheader(f"Decisions — {get_time_label()}")
+    st.subheader(f"Decisions â€” {get_time_label()}")
 
     st.markdown("### Preparation actions")
 
@@ -769,7 +790,7 @@ if st.session_state.in_decision:
             duration = int(selected_action.get("estimated_time_minutes", 0))
             running_total += duration
             st.write(
-                f"{seq_num}. {selected_action['label']} — {duration} min "
+                f"{seq_num}. {selected_action['label']} â€” {duration} min "
                 f"(cumulative: {running_total} min)"
             )
 
@@ -806,6 +827,13 @@ if st.session_state.in_decision:
                     disabled=not fits_time
                 ):
                     minutes_before = st.session_state.prep_minutes_this_step
+                    prerequisites = list(action.get("prerequisites", []))
+                    missing_prerequisites = [
+                        prerequisite_id
+                        for prerequisite_id in prerequisites
+                        if prerequisite_id
+                        not in st.session_state.completed_prep_actions
+                    ]
                     st.session_state.prep_minutes_this_step += duration
                     minutes_after = st.session_state.prep_minutes_this_step
                     st.session_state.prep_actions_this_step.append(action["id"])
@@ -823,6 +851,10 @@ if st.session_state.in_decision:
                             "action_id": action["id"],
                             "action_label": action["label"],
                             "repeatable": is_repeatable(action),
+                            "prerequisites": prerequisites,
+                            "prerequisites_met": not missing_prerequisites,
+                            "missing_prerequisites": missing_prerequisites,
+                            "prerequisite_check_is_logging_only": True,
                             "estimated_time_minutes": duration,
                             "sequence_in_step": len(st.session_state.prep_actions_this_step),
                             "minutes_before_action": minutes_before,
@@ -880,14 +912,6 @@ if st.session_state.in_decision:
         decision_duration = (
             time.perf_counter() - st.session_state.decision_start_perf
         )
-        log_event(
-            "decision_time_spent",
-            {
-                "server_elapsed_seconds": decision_duration,
-                "timer_source": "server_monotonic_includes_render_latency"
-            }
-        )
-
         choice = "stay"
         if evac_all:
             choice = "evacuate_all"
@@ -919,6 +943,11 @@ if st.session_state.in_decision:
         decision_simulated_time = scheduled_time_label(
             offset_minutes=simulated_offset
         )
+        choice_is_evacuation = choice in {"evacuate_all", "evacuate_family"}
+        state_is_evacuation = selected_process_state == "evacuate_now"
+        decision_state_choice_consistent = (
+            choice_is_evacuation == state_is_evacuation
+        )
 
         decision_payload = {
             "time_step_minutes": TIME_STEP_MINUTES,
@@ -934,6 +963,9 @@ if st.session_state.in_decision:
                 selected_process_state
             ],
             "choice": choice,
+            "decision_state_choice_consistent": (
+                decision_state_choice_consistent
+            ),
             "prep_action_sequence": action_sequence,
             "prep_minutes_this_step": simulated_offset,
             "minutes_beyond_nominal_period": max(
@@ -955,7 +987,9 @@ if st.session_state.in_decision:
             "phase_exited",
             {
                 "phase": "decision",
-                "server_elapsed_seconds": decision_duration
+                "server_elapsed_seconds": decision_duration,
+                "timer_source": "server_monotonic_includes_render_latency",
+                "includes_nested_information_time": False
             }
         )
 
@@ -1023,31 +1057,34 @@ if st.session_state.scenario_ended:
     # Attempt delivery only once per session. The local atomic result file is
     # preserved whether delivery succeeds or fails.
     results_file = f"results/{st.session_state.session_id}.json"
-    if not st.session_state.results_delivery_attempted:
-        st.session_state.results_delivery_attempted = True
-        log_event("results_delivery_attempted", {"method": "email"})
+    if st.session_state.results_delivery_status == "not_attempted":
+        st.session_state.results_delivery_status = "attempting"
+        log_event(
+            "results_delivery_attempted",
+            {"method": "email", "delivery_status": "attempting"}
+        )
         try:
             email_results_file(results_file)
-            st.session_state.results_delivery_succeeded = True
+            st.session_state.results_delivery_status = "succeeded"
             st.session_state.results_delivery_error = None
             log_event(
                 "results_delivery_completed",
-                {"method": "email", "status": "succeeded"}
+                {"method": "email", "delivery_status": "succeeded"}
             )
         except Exception as e:
-            st.session_state.results_delivery_succeeded = False
+            st.session_state.results_delivery_status = "failed"
             st.session_state.results_delivery_error = str(e)
             log_event(
                 "results_delivery_completed",
                 {
                     "method": "email",
-                    "status": "failed",
+                    "delivery_status": "failed",
                     "error_type": type(e).__name__
                 }
             )
 
-    if st.session_state.results_delivery_succeeded:
-        st.info("✅ Your decisions have been automatically recorded.")
+    if st.session_state.results_delivery_status == "succeeded":
+        st.info("âœ… Your decisions have been automatically recorded.")
     else:
         st.error(
             "Your result was saved locally, but email delivery failed. "
@@ -1063,7 +1100,7 @@ if st.session_state.scenario_ended:
 # ======================================================
 # 8. MAIN DASHBOARD
 # ======================================================
-st.header(f"{TITLE} — {get_time_label()}")
+st.header(f"{TITLE} â€” {get_time_label()}")
 
 # Display information panel at TOP if tile is open
 if st.session_state.open_tile:
@@ -1180,6 +1217,11 @@ for row in range(4):
 
                 # Open new tile
                 was_revisit = tid in st.session_state.tiles_opened_this_step
+                content_changed_from_previous_period = has_new_update(tid)
+                new_to_participant_this_period = (
+                    content_changed_from_previous_period
+                    and tid not in st.session_state.viewed_updates
+                )
                 st.session_state.tile_view_sequence_this_step += 1
                 st.session_state.open_tile = tid
                 st.session_state.current_tile_id = tid
@@ -1207,7 +1249,12 @@ for row in range(4):
                             st.session_state.tile_view_sequence_this_step
                         ),
                         "was_revisit": was_revisit,
-                        "had_new_update": has_new_update(tid),
+                        "content_changed_from_previous_period": (
+                            content_changed_from_previous_period
+                        ),
+                        "new_to_participant_this_period": (
+                            new_to_participant_this_period
+                        ),
                         "content_sha256": content_sha256(tile_content)
                     }
                 )
@@ -1241,18 +1288,12 @@ if st.button(
         time.perf_counter() - st.session_state.dashboard_start_perf
     )
     log_event(
-        "dashboard_time_spent",
-        {
-            "server_elapsed_seconds": dashboard_duration,
-            "timer_source": "server_monotonic_includes_render_latency",
-            "includes_tile_and_social_time": True
-        }
-    )
-    log_event(
         "phase_exited",
         {
             "phase": "dashboard",
-            "server_elapsed_seconds": dashboard_duration
+            "server_elapsed_seconds": dashboard_duration,
+            "timer_source": "server_monotonic_includes_render_latency",
+            "includes_nested_information_time": True
         }
     )
     st.session_state.in_assessment = True

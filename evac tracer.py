@@ -1,5 +1,5 @@
 # Wildfire Evacuation Decision Simulator
-# Version 2.6.2 - decision-process observability revision
+# Version 2.6.3 - interface readability and compact assessment revision
 #
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
@@ -7,6 +7,10 @@
 # Version 2.6.2 adds non-reactive opportunity-set and decision-state-change
 # logging. These records are for later analysis only and do not warn, verify,
 # constrain, or otherwise alter participant decisions.
+# Version 2.6.3 retains the 2.6.2 scenario and schema while introducing a
+# neutral, research-appropriate visual system and a compact 0-10 assessment
+# scale. The scale specification is written into every result and assessment
+# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.
 
 import streamlit as st
 import json
@@ -21,16 +25,25 @@ import time
 from email.message import EmailMessage
 from pathlib import Path
 
-# Set wide layout for more display space
-st.set_page_config(layout="wide")
+# Set wide layout for the fixed 4 x 4 information-source grid.
+st.set_page_config(
+    page_title="Wildfire Evacuation Scenario",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "2.6.2"
+APP_VERSION = "2.6.3"
 RESULT_SCHEMA_VERSION = "3.2"
 CONTROL_PATH = Path("control.json")
+
+ASSESSMENT_SCALE_MIN = 0
+ASSESSMENT_SCALE_MAX = 10
+ASSESSMENT_SCALE_DEFAULT = 5
+ASSESSMENT_SCALE_STEP = 1
 
 
 def load_control():
@@ -184,6 +197,7 @@ def init_state():
     if "session_id" not in st.session_state:
         st.session_state.session_id = str(uuid.uuid4())
         st.session_state.session_schema_version = RESULT_SCHEMA_VERSION
+        st.session_state.session_app_version = APP_VERSION
         st.session_state.session_started_at_utc = utc_now_iso()
         st.session_state.session_completed_at_utc = None
         st.session_state.completion_status = "active"
@@ -275,10 +289,13 @@ def ensure_new_state_defaults():
 
 
 def reset_incompatible_session_state():
-    """Never mix browser session state from incompatible result schemas."""
+    """Never mix browser state from incompatible schemas or app versions."""
     if (
         "session_id" in st.session_state
-        and st.session_state.get("session_schema_version") != RESULT_SCHEMA_VERSION
+        and (
+            st.session_state.get("session_schema_version") != RESULT_SCHEMA_VERSION
+            or st.session_state.get("session_app_version") != APP_VERSION
+        )
     ):
         st.session_state.clear()
         st.rerun()
@@ -290,31 +307,157 @@ ensure_new_state_defaults()
 
 st.markdown("""
 <style>
-/* Uniform tile styling */
+:root {
+    --wf-ink: #233142;
+    --wf-muted: #5f6f7f;
+    --wf-primary: #315f7d;
+    --wf-primary-dark: #244b65;
+    --wf-surface: #ffffff;
+    --wf-background: #f4f6f8;
+    --wf-border: #d8e0e7;
+}
+
+[data-testid="stAppViewContainer"] {
+    background: var(--wf-background);
+}
+
+.block-container {
+    max-width: 1320px;
+    padding-top: 1.4rem;
+    padding-bottom: 3rem;
+}
+
+h1, h2, h3, h4 {
+    color: var(--wf-ink);
+    letter-spacing: -0.015em;
+}
+
+p, li, label {
+    color: var(--wf-ink);
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--wf-surface);
+    border-color: var(--wf-border) !important;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(35, 49, 66, 0.05);
+}
+
+div[data-testid="stMetric"] {
+    background: var(--wf-surface);
+    border: 1px solid var(--wf-border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+div[data-testid="stAlert"] {
+    border-radius: 10px;
+}
+
 .stButton > button {
-    width: 100% !important;
-    height: 60px !important;
-    padding: 12px !important;
-    text-align: left !important;
-    white-space: normal !important;
-    word-wrap: break-word !important;
-    font-size: 14px !important;
-    line-height: 1.3 !important;
-    display: flex !important;
-    align-items: center !important;
+    min-height: 2.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
 }
 
-/* Make columns equal width */
-div[data-testid="column"] {
-    flex: 1 !important;
-    min-width: 0 !important;
+.stButton > button[kind="primary"] {
+    background: var(--wf-primary);
+    border-color: var(--wf-primary);
 }
 
-/* Style close button */
-button[kind="secondary"]:has-text("Close") {
-    background-color: #ff4b4b !important;
-    color: white !important;
-    border: none !important;
+.stButton > button[kind="primary"]:hover {
+    background: var(--wf-primary-dark);
+    border-color: var(--wf-primary-dark);
+}
+
+/* Scope fixed-height, left-aligned styling to information-source tiles. */
+div[class*="st-key-tile_"] button {
+    width: 100%;
+    min-height: 4rem;
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    justify-content: flex-start;
+    white-space: normal;
+    line-height: 1.25;
+    background: var(--wf-surface);
+    border-color: var(--wf-border);
+}
+
+div[class*="st-key-tile_"] button:hover:not(:disabled) {
+    border-color: var(--wf-primary);
+    color: var(--wf-primary-dark);
+}
+
+/* Close is a neutral navigation control, not a destructive action. */
+div[class*="st-key-close_modal"] button {
+    min-height: 2.5rem;
+    border-color: var(--wf-primary);
+    color: var(--wf-primary-dark);
+}
+
+div[class*="st-key-decision_choice_"] button {
+    width: 100%;
+    min-height: 3.5rem;
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
+}
+
+.wf-context-title {
+    margin: 0;
+    color: var(--wf-ink);
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.wf-context-label {
+    margin: 0.15rem 0 0 0;
+    color: var(--wf-muted);
+    font-size: 0.95rem;
+}
+
+.wf-time-label {
+    margin: 0;
+    color: var(--wf-muted);
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.wf-time-value {
+    margin: 0.1rem 0 0 0;
+    color: var(--wf-ink);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.wf-information-copy {
+    max-width: 880px;
+    color: var(--wf-ink);
+    font-size: 1.08rem;
+    line-height: 1.6;
+}
+
+.wf-anchor-left, .wf-anchor-right {
+    color: var(--wf-muted);
+    font-size: 0.78rem;
+    line-height: 1.2;
+}
+
+.wf-anchor-right {
+    text-align: right;
+}
+
+@media (max-width: 800px) {
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    div[class*="st-key-tile_"] button {
+        min-height: 3.4rem;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -377,7 +520,16 @@ def result_document():
             "time_step_minutes": TIME_STEP_MINUTES,
             "nominal_minutes": NOMINAL_MINUTES,
             "maximum_minutes": MAX_MINUTES,
-            "time_steps": TIME_STEPS
+            "time_steps": TIME_STEPS,
+            "assessment_scale": {
+                "minimum": ASSESSMENT_SCALE_MIN,
+                "maximum": ASSESSMENT_SCALE_MAX,
+                "default": ASSESSMENT_SCALE_DEFAULT,
+                "step": ASSESSMENT_SCALE_STEP
+            },
+            "assessment_variable_ids": [
+                variable["id"] for variable in ASSESSMENT_VARIABLES
+            ]
         },
         "events": st.session_state.logs,
         "completion": {
@@ -553,6 +705,53 @@ def is_end_of_time_window():
 
 def get_time_label():
     return scheduled_time_label()
+
+
+def render_context_header(activity, *, show_scenario_time=True):
+    """Render a consistent, neutral header without changing scenario flow."""
+    with st.container(border=True):
+        if show_scenario_time:
+            title_col, time_col = st.columns([4, 1])
+            with title_col:
+                st.markdown(
+                    '<p class="wf-context-title">Wildfire Evacuation Scenario</p>',
+                    unsafe_allow_html=True
+                )
+                st.markdown(
+                    f'<p class="wf-context-label">{activity}</p>',
+                    unsafe_allow_html=True
+                )
+            with time_col:
+                st.markdown(
+                    '<p class="wf-time-label">Scenario time</p>',
+                    unsafe_allow_html=True
+                )
+                st.markdown(
+                    f'<p class="wf-time-value">{get_time_label()}</p>',
+                    unsafe_allow_html=True
+                )
+        else:
+            st.markdown(
+                '<p class="wf-context-title">Wildfire Evacuation Scenario</p>',
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f'<p class="wf-context-label">{activity}</p>',
+                unsafe_allow_html=True
+            )
+
+
+def scenario_briefing_sections(intro):
+    """Group the unchanged original-scenario facts into readable sections."""
+    lines = [str(line).strip() for line in intro.get("text", []) if str(line).strip()]
+    if len(lines) >= 13:
+        return [
+            ("Your household", " ".join(lines[0:5])),
+            ("Home and wildfire experience", " ".join(lines[5:8])),
+            ("Your role", " ".join(lines[8:10])),
+            ("What happens next", " ".join(lines[10:])),
+        ]
+    return [("Scenario information", " ".join(lines))]
 
 
 def content_sha256(content):
@@ -753,48 +952,80 @@ def log_scenario_step_started_once():
 # 5. CONSENT / CONTACT / INTRO
 # ======================================================
 if not st.session_state.consent_given:
-    st.header(CONTROL["irb_consent"]["title"])
-    for p in CONTROL["irb_consent"]["text"]:
-        st.write(p)
-    if st.checkbox("I have read the information.") and st.checkbox("I consent to participate."):
-        if st.button("Proceed"):
+    render_context_header("Research study information", show_scenario_time=False)
+    with st.container(border=True):
+        st.header(CONTROL["irb_consent"]["title"])
+        for p in CONTROL["irb_consent"]["text"]:
+            st.write(p)
+        st.divider()
+        read_information = st.checkbox("I have read the information.")
+        consent_to_participate = st.checkbox("I consent to participate.")
+        if st.button(
+            "Proceed",
+            type="primary",
+            disabled=not (read_information and consent_to_participate)
+        ):
             st.session_state.consent_given = True
             log_event("consent_accepted", {})
             st.rerun()
     st.stop()
 
 if not st.session_state.contact_collected:
-    st.header(CONTROL["contact_screen"]["title"])
-    for p in CONTROL["contact_screen"]["text"]:
-        st.write(p)
-    email = st.text_input("Email (optional)")
-    phone = st.text_input("Phone (optional)")
-    if st.button("Continue"):
-        contact_record_created = save_contact_information(email, phone)
-        st.session_state.contact_collected = True
-        log_event(
-            "contact_collected",
-            {
-                "email_provided": bool(email.strip()),
-                "phone_provided": bool(phone.strip()),
-                "pii_record_created": contact_record_created,
-                "pii_stored_separately": contact_record_created
-            }
-        )
-        st.rerun()
+    render_context_header("Optional contact information", show_scenario_time=False)
+    with st.container(border=True):
+        st.header(CONTROL["contact_screen"]["title"])
+        for p in CONTROL["contact_screen"]["text"]:
+            st.write(p)
+        st.caption("You may leave both fields blank and continue.")
+        email_col, phone_col = st.columns(2)
+        with email_col:
+            email = st.text_input("Email (optional)")
+        with phone_col:
+            phone = st.text_input("Phone (optional)")
+        if st.button("Continue", type="primary"):
+            contact_record_created = save_contact_information(email, phone)
+            st.session_state.contact_collected = True
+            log_event(
+                "contact_collected",
+                {
+                    "email_provided": bool(email.strip()),
+                    "phone_provided": bool(phone.strip()),
+                    "pii_record_created": contact_record_created,
+                    "pii_stored_separately": contact_record_created
+                }
+            )
+            st.rerun()
     st.stop()
 
 if st.session_state.show_intro:
     intro = CONTROL["scenario_description"]
+    render_context_header("Scenario briefing", show_scenario_time=False)
     st.header(intro["title"])
     c1, c2 = st.columns(2)
-    if "image_house" in intro:
-        c1.image(intro["image_house"])
-    if "image_map" in intro:
-        c2.image(intro["image_map"])
-    for p in intro["text"]:
-        st.write(p)
-    if st.button("Start Scenario"):
+    with c1:
+        with st.container(border=True):
+            if "image_house" in intro:
+                st.image(intro["image_house"], use_container_width=True)
+                st.caption("Scenario household")
+    with c2:
+        with st.container(border=True):
+            if "image_map" in intro:
+                st.image(intro["image_map"], use_container_width=True)
+                st.caption("Scenario area map")
+
+    briefing_sections = scenario_briefing_sections(intro)
+    for row_start in range(0, len(briefing_sections), 2):
+        section_columns = st.columns(2)
+        for column_index, section in enumerate(
+            briefing_sections[row_start:row_start + 2]
+        ):
+            heading, paragraph = section
+            with section_columns[column_index]:
+                with st.container(border=True):
+                    st.markdown(f"#### {heading}")
+                    st.write(paragraph)
+
+    if st.button("Start Scenario", type="primary", use_container_width=True):
         st.session_state.show_intro = False
         log_event("scenario_started", {})
         st.session_state.current_phase = "dashboard"
@@ -807,27 +1038,62 @@ if st.session_state.show_intro:
 # 6. ASSESSMENT SCREEN
 # ======================================================
 if st.session_state.in_assessment:
+    render_context_header("Situation assessment")
     st.subheader("Situation Assessment")
+    st.info(
+        "Rate each item from 0 to 10 based on the situation as you understand "
+        "it now. Every slider begins at 5; leave it at 5 if that represents "
+        "your response."
+    )
 
     results = {}
-    for variable in ASSESSMENT_VARIABLES:
-        variable_id = variable["id"]
-        label = (
-            f"{variable['prompt']} "
-            f"(0 = {variable['low_anchor']}; "
-            f"100 = {variable['high_anchor']})"
-        )
-        results[variable_id] = st.slider(
-            label,
-            0,
-            100,
-            50,
-            key=f"assessment_{variable_id}_{st.session_state.time_index}",
-            on_change=mark_assessment_interaction,
-            args=(variable_id,)
-        )
+    for row_start in range(0, len(ASSESSMENT_VARIABLES), 2):
+        assessment_columns = st.columns(2)
+        for column_index, variable in enumerate(
+            ASSESSMENT_VARIABLES[row_start:row_start + 2]
+        ):
+            variable_id = variable["id"]
+            question_number = row_start + column_index + 1
+            with assessment_columns[column_index]:
+                with st.container(border=True):
+                    st.caption(
+                        f"Question {question_number} of "
+                        f"{len(ASSESSMENT_VARIABLES)}"
+                    )
+                    st.markdown(f"**{variable['prompt']}**")
+                    results[variable_id] = st.slider(
+                        variable["prompt"],
+                        ASSESSMENT_SCALE_MIN,
+                        ASSESSMENT_SCALE_MAX,
+                        ASSESSMENT_SCALE_DEFAULT,
+                        step=ASSESSMENT_SCALE_STEP,
+                        key=(
+                            f"assessment_{variable_id}_"
+                            f"{st.session_state.time_index}"
+                        ),
+                        on_change=mark_assessment_interaction,
+                        args=(variable_id,),
+                        label_visibility="collapsed"
+                    )
+                    low_col, high_col = st.columns(2)
+                    with low_col:
+                        st.markdown(
+                            f'<div class="wf-anchor-left">0 — '
+                            f'{variable["low_anchor"]}</div>',
+                            unsafe_allow_html=True
+                        )
+                    with high_col:
+                        st.markdown(
+                            f'<div class="wf-anchor-right">10 — '
+                            f'{variable["high_anchor"]}</div>',
+                            unsafe_allow_html=True
+                        )
 
-    if st.button("Continue to Decisions"):
+    if st.button(
+        "Continue to Decisions",
+        type="primary",
+        use_container_width=True
+    ):
         assessment_duration = (
             time.perf_counter() - st.session_state.assessment_start_perf
         )
@@ -844,7 +1110,7 @@ if st.session_state.in_assessment:
             )
             interaction_records[variable_id] = {
                 "value": results[variable_id],
-                "default_value": 50,
+                "default_value": ASSESSMENT_SCALE_DEFAULT,
                 **record
             }
 
@@ -853,6 +1119,12 @@ if st.session_state.in_assessment:
             {
                 "scores": results,
                 "interactions": interaction_records,
+                "scale": {
+                    "minimum": ASSESSMENT_SCALE_MIN,
+                    "maximum": ASSESSMENT_SCALE_MAX,
+                    "default": ASSESSMENT_SCALE_DEFAULT,
+                    "step": ASSESSMENT_SCALE_STEP
+                },
                 "server_elapsed_seconds": assessment_duration
             }
         )
@@ -880,7 +1152,8 @@ if st.session_state.in_assessment:
 # if there is no description in json it may show an empty line and an option
 # ======================================================
 if st.session_state.in_decision:
-    st.subheader(f"Decisions â€” {get_time_label()}")
+    render_context_header("Preparation and decision")
+    st.subheader("Preparation and Decisions")
 
     st.markdown("### Preparation actions")
 
@@ -926,14 +1199,24 @@ if st.session_state.in_decision:
             }
         )
 
-    t1, t2, t3 = st.columns(3)
-    t1.metric("Minutes used", f"{used_minutes} min")
-    t2.metric("Minutes left in period", f"{remaining_hour} min")
-    t3.metric("Minutes left until maximum", f"{remaining_cap} min")
+    if MAX_MINUTES == NOMINAL_MINUTES:
+        t1, t2 = st.columns(2)
+        t1.metric("Time used", f"{used_minutes} min")
+        t2.metric("Time remaining", f"{remaining_cap} min")
+    else:
+        t1, t2, t3 = st.columns(3)
+        t1.metric("Time used", f"{used_minutes} min")
+        t2.metric("Time left in period", f"{remaining_hour} min")
+        t3.metric("Time left until maximum", f"{remaining_cap} min")
 
     st.progress(min(used_minutes / MAX_MINUTES, 1.0))
 
-    if used_minutes > NOMINAL_MINUTES:
+    if MAX_MINUTES == NOMINAL_MINUTES:
+        st.caption(
+            f"Preparation actions may use up to {MAX_MINUTES} minutes in "
+            "this scenario period."
+        )
+    elif used_minutes > NOMINAL_MINUTES:
         st.warning(
             f"You are {used_minutes - NOMINAL_MINUTES} minutes beyond the "
             f"{NOMINAL_MINUTES}-minute period. No action may push the total "
@@ -947,18 +1230,22 @@ if st.session_state.in_decision:
         )
 
     if st.session_state.prep_actions_this_step:
-        st.markdown("#### Actions selected this period")
-        running_total = 0
-        for seq_num, action_id in enumerate(st.session_state.prep_actions_this_step, start=1):
-            selected_action = get_prep_action(action_id)
-            if selected_action is None:
-                continue
-            duration = int(selected_action.get("estimated_time_minutes", 0))
-            running_total += duration
-            st.write(
-                f"{seq_num}. {selected_action['label']} â€” {duration} min "
-                f"(cumulative: {running_total} min)"
-            )
+        with st.container(border=True):
+            st.markdown("#### Actions selected this period")
+            running_total = 0
+            for seq_num, action_id in enumerate(
+                st.session_state.prep_actions_this_step,
+                start=1
+            ):
+                selected_action = get_prep_action(action_id)
+                if selected_action is None:
+                    continue
+                duration = int(selected_action.get("estimated_time_minutes", 0))
+                running_total += duration
+                st.write(
+                    f"{seq_num}. {selected_action['label']} — {duration} min "
+                    f"(cumulative: {running_total} min)"
+                )
 
     st.divider()
 
@@ -971,109 +1258,145 @@ if st.session_state.in_decision:
         duration = int(action.get("estimated_time_minutes", 0))
         fits_time = duration <= minutes_remaining_to_cap()
 
-        col1, col2, col3 = st.columns([4, 1, 1])
+        with st.container(border=True):
+            col1, col2, col3 = st.columns([5, 1, 1.7])
 
-        with col1:
-            st.write(f"**{action['label']}**")
-            if action.get("description"):
-                st.caption(action["description"])
+            with col1:
+                st.markdown(f"**{action['label']}**")
+                if action.get("description"):
+                    st.caption(action["description"])
 
-        with col2:
-            st.write(f"{duration} min")
+            with col2:
+                st.markdown(f"**{duration} min**")
+                st.caption("Estimated time")
 
-        with col3:
-            if done_permanently:
-                st.write("Completed")
-            elif done_this_step:
-                st.write("Done this period")
-            else:
-                if st.button(
-                    "Perform action",
-                    key=f"prep_{action['id']}_{st.session_state.time_index}",
-                    disabled=not fits_time
-                ):
-                    minutes_before = st.session_state.prep_minutes_this_step
-                    prerequisites = list(action.get("prerequisites", []))
-                    missing_prerequisites = [
-                        prerequisite_id
-                        for prerequisite_id in prerequisites
-                        if prerequisite_id
-                        not in st.session_state.completed_prep_actions
-                    ]
-                    st.session_state.prep_minutes_this_step += duration
-                    minutes_after = st.session_state.prep_minutes_this_step
-                    st.session_state.prep_actions_this_step.append(action["id"])
+            with col3:
+                if done_permanently:
+                    st.markdown("**Completed**")
+                elif done_this_step:
+                    st.markdown("**Done this period**")
+                else:
+                    if st.button(
+                        "Perform action",
+                        key=f"prep_{action['id']}_{st.session_state.time_index}",
+                        disabled=not fits_time,
+                        use_container_width=True
+                    ):
+                        minutes_before = st.session_state.prep_minutes_this_step
+                        prerequisites = list(action.get("prerequisites", []))
+                        missing_prerequisites = [
+                            prerequisite_id
+                            for prerequisite_id in prerequisites
+                            if prerequisite_id
+                            not in st.session_state.completed_prep_actions
+                        ]
+                        st.session_state.prep_minutes_this_step += duration
+                        minutes_after = st.session_state.prep_minutes_this_step
+                        st.session_state.prep_actions_this_step.append(action["id"])
 
-                    if not is_repeatable(action):
-                        st.session_state.completed_prep_actions.add(action["id"])
+                        if not is_repeatable(action):
+                            st.session_state.completed_prep_actions.add(action["id"])
 
-                    st.session_state.prep_action_counts[action["id"]] = (
-                        st.session_state.prep_action_counts.get(action["id"], 0) + 1
-                    )
+                        st.session_state.prep_action_counts[action["id"]] = (
+                            st.session_state.prep_action_counts.get(action["id"], 0) + 1
+                        )
 
-                    log_event(
-                        "prep_action_completed",
-                        {
-                            "action_id": action["id"],
-                            "action_label": action["label"],
-                            "repeatable": is_repeatable(action),
-                            "prerequisites": prerequisites,
-                            "prerequisites_met": not missing_prerequisites,
-                            "missing_prerequisites": missing_prerequisites,
-                            "prerequisite_check_is_logging_only": True,
-                            "estimated_time_minutes": duration,
-                            "sequence_in_step": len(st.session_state.prep_actions_this_step),
-                            "minutes_before_action": minutes_before,
-                            "minutes_used_this_step": minutes_after,
-                            "simulated_action_start_time": scheduled_time_label(
-                                offset_minutes=minutes_before
-                            ),
-                            "simulated_action_end_time": scheduled_time_label(
-                                offset_minutes=minutes_after
-                            ),
-                            "minutes_remaining_in_period": minutes_remaining_in_period(),
-                            "minutes_remaining_to_cap": minutes_remaining_to_cap(),
-                            "occurrence": st.session_state.prep_action_counts[action["id"]]
-                        }
-                    )
-                    st.rerun()
+                        log_event(
+                            "prep_action_completed",
+                            {
+                                "action_id": action["id"],
+                                "action_label": action["label"],
+                                "repeatable": is_repeatable(action),
+                                "prerequisites": prerequisites,
+                                "prerequisites_met": not missing_prerequisites,
+                                "missing_prerequisites": missing_prerequisites,
+                                "prerequisite_check_is_logging_only": True,
+                                "estimated_time_minutes": duration,
+                                "sequence_in_step": len(
+                                    st.session_state.prep_actions_this_step
+                                ),
+                                "minutes_before_action": minutes_before,
+                                "minutes_used_this_step": minutes_after,
+                                "simulated_action_start_time": scheduled_time_label(
+                                    offset_minutes=minutes_before
+                                ),
+                                "simulated_action_end_time": scheduled_time_label(
+                                    offset_minutes=minutes_after
+                                ),
+                                "minutes_remaining_in_period": (
+                                    minutes_remaining_in_period()
+                                ),
+                                "minutes_remaining_to_cap": (
+                                    minutes_remaining_to_cap()
+                                ),
+                                "occurrence": st.session_state.prep_action_counts[
+                                    action["id"]
+                                ]
+                            }
+                        )
+                        st.rerun()
 
-                if not fits_time:
-                    st.caption(
-                        f"Not enough time: {minutes_remaining_to_cap()} min remain."
-                    )
+                    if not fits_time:
+                        st.caption(
+                            f"Insufficient time: "
+                            f"{minutes_remaining_to_cap()} min remain."
+                        )
 
     st.divider()
 
-    st.markdown("### Current decision stage")
-    process_state_options = ["__select__", *DECISION_PROCESS_STATES.keys()]
-    selected_process_state = st.selectbox(
-        "Which statement best describes what you have decided to do at this moment?",
-        process_state_options,
-        format_func=lambda value: (
-            "Select your current decision stage"
-            if value == "__select__"
-            else DECISION_PROCESS_STATES[value]
-        ),
-        key=decision_process_widget_key(),
-        on_change=mark_decision_process_state_interaction
-    )
-    process_state_selected = selected_process_state != "__select__"
+    with st.container(border=True):
+        st.markdown("### Record what you would do now")
+        st.write(
+            "First describe your current decision stage. Then select the "
+            "action you would take at this moment."
+        )
 
-    st.markdown("### Evacuation decision")
+        process_state_options = ["__select__", *DECISION_PROCESS_STATES.keys()]
+        selected_process_state = st.selectbox(
+            "Which statement best describes what you have decided to do at this moment?",
+            process_state_options,
+            format_func=lambda value: (
+                "Select your current decision stage"
+                if value == "__select__"
+                else DECISION_PROCESS_STATES[value]
+            ),
+            key=decision_process_widget_key(),
+            on_change=mark_decision_process_state_interaction
+        )
+        process_state_selected = selected_process_state != "__select__"
 
-    is_final_step = st.session_state.time_index == len(TIME_STEPS) - 1
+        st.markdown("#### Evacuation decision")
 
-    if not process_state_selected:
-        st.caption("Select your current decision stage before making the final choice.")
+        is_final_step = st.session_state.time_index == len(TIME_STEPS) - 1
 
-    evac_all = st.button("Evacuate now", disabled=not process_state_selected)
-    evac_fam = st.button(
-        "Ask a neighbor to evacuate kids and dog",
-        disabled=not process_state_selected
-    )
-    stay_label = "Stay despite GO order" if is_final_step else "Stay and continue"
-    stay = st.button(stay_label, disabled=not process_state_selected)
+        if not process_state_selected:
+            st.caption(
+                "Select your current decision stage before making the final choice."
+            )
+
+        decision_columns = st.columns(3)
+        with decision_columns[0]:
+            evac_all = st.button(
+                "Evacuate now",
+                key=f"decision_choice_all_{st.session_state.time_index}",
+                disabled=not process_state_selected,
+                use_container_width=True
+            )
+        with decision_columns[1]:
+            evac_fam = st.button(
+                "Ask a neighbor to evacuate kids and dog",
+                key=f"decision_choice_family_{st.session_state.time_index}",
+                disabled=not process_state_selected,
+                use_container_width=True
+            )
+        stay_label = "Stay despite GO order" if is_final_step else "Stay and continue"
+        with decision_columns[2]:
+            stay = st.button(
+                stay_label,
+                key=f"decision_choice_stay_{st.session_state.time_index}",
+                disabled=not process_state_selected,
+                use_container_width=True
+            )
 
     if evac_all or evac_fam or stay:
         decision_duration = (
@@ -1240,6 +1563,7 @@ if st.session_state.in_decision:
 # SCENARIO END HANDLING
 # ======================================================
 if st.session_state.scenario_ended:
+    render_context_header("Scenario complete")
     st.header("Scenario Complete")
     if st.session_state.scenario_end_reason == "evacuated":
         st.success("Your decision to evacuate has been recorded.")
@@ -1278,7 +1602,7 @@ if st.session_state.scenario_ended:
             )
 
     if st.session_state.results_delivery_status == "succeeded":
-        st.info("âœ… Your decisions have been automatically recorded.")
+        st.info("✅ Your decisions have been automatically recorded.")
     else:
         st.error(
             "Your result was saved locally, but email delivery failed. "
@@ -1294,7 +1618,7 @@ if st.session_state.scenario_ended:
 # ======================================================
 # 8. MAIN DASHBOARD
 # ======================================================
-st.header(f"{TITLE} â€” {get_time_label()}")
+render_context_header("Review information")
 log_scenario_step_started_once()
 
 # Display information panel at TOP if tile is open
@@ -1317,76 +1641,91 @@ if st.session_state.open_tile:
         )
         st.session_state.current_tile_display_logged = True
 
-    # Information panel with prominent styling header
-    st.markdown(
-        f"<h4 style='margin: 0 0 10px 0; font-size: 20px; color: #333;'>{tile['label']}</h4>",
-        unsafe_allow_html=True
-    )
+    with st.container(border=True):
+        panel_title_col, panel_close_col = st.columns([5, 1])
+        with panel_title_col:
+            st.markdown(f"### {tile['label']}")
+            st.caption("Open information source")
+        with panel_close_col:
+            if st.button(
+                "Close",
+                key="close_modal",
+                use_container_width=True
+            ):
+                finalize_open_information("user_closed")
+                st.rerun()
 
-    # Display content with larger font
-    if tile.get("type") == "social_contacts":
-        for c in tile["contacts"]:
-            if st.button(f"Message {c['name']}", key=f"soc_{c['id']}", use_container_width=True):
-                if st.session_state.current_social_contact:
-                    finalize_current_social("contact_switched")
-                reply = CONTROL["social_response_policies"][c["response_policy"]][str(CURRENT_TIME_VAL)]
-                st.session_state.current_social_contact = c["name"]
-                st.session_state.social_open_perf = time.perf_counter()
-                st.session_state.current_social_instance_id = str(uuid.uuid4())
-                log_event(
-                    "social_contact_requested",
-                    {
-                        "contact": c["name"],
-                        "contact_id": c["id"],
-                        "social_instance_id": (
-                            st.session_state.current_social_instance_id
-                        ),
-                        "response_policy": c["response_policy"]
-                    }
-                )
-                log_event(
-                    "social_reply_displayed_server",
-                    {
-                        "contact": c["name"],
-                        "contact_id": c["id"],
-                        "social_instance_id": (
-                            st.session_state.current_social_instance_id
-                        ),
-                        "reply": reply,
-                        "reply_sha256": content_sha256(reply)
-                    }
-                )
-                st.info(reply)
-    else:
-        if content is not None:
-            if "text" in content:
-                st.markdown(f'<div style="font-size: 20px; line-height: 1.6; color: #333;">{content["text"]}</div>',
-                            unsafe_allow_html=True)
-            if "image" in content:
-                img = content.get("image")
+        st.divider()
 
-                # Only attempt to render if it's a non-empty string
-                if isinstance(img, str) and img.strip():
-                    img = img.strip().replace("\\", "/")  # normalize Windows paths
-                    st.image(img)
-                # else: skip silently (or show a placeholder)
+        if tile.get("type") == "social_contacts":
+            for c in tile["contacts"]:
+                if st.button(
+                    f"Message {c['name']}",
+                    key=f"soc_{c['id']}",
+                    use_container_width=True
+                ):
+                    if st.session_state.current_social_contact:
+                        finalize_current_social("contact_switched")
+                    reply = CONTROL["social_response_policies"][
+                        c["response_policy"]
+                    ][str(CURRENT_TIME_VAL)]
+                    st.session_state.current_social_contact = c["name"]
+                    st.session_state.social_open_perf = time.perf_counter()
+                    st.session_state.current_social_instance_id = str(uuid.uuid4())
+                    log_event(
+                        "social_contact_requested",
+                        {
+                            "contact": c["name"],
+                            "contact_id": c["id"],
+                            "social_instance_id": (
+                                st.session_state.current_social_instance_id
+                            ),
+                            "response_policy": c["response_policy"]
+                        }
+                    )
+                    log_event(
+                        "social_reply_displayed_server",
+                        {
+                            "contact": c["name"],
+                            "contact_id": c["id"],
+                            "social_instance_id": (
+                                st.session_state.current_social_instance_id
+                            ),
+                            "reply": reply,
+                            "reply_sha256": content_sha256(reply)
+                        }
+                    )
+                    st.info(reply)
         else:
-            st.markdown('<div style="font-size: 16px; color: #666;">No information available at this time.</div>',
-                        unsafe_allow_html=True)
+            if content is not None:
+                if "text" in content:
+                    st.markdown(
+                        f'<div class="wf-information-copy">'
+                        f'{content["text"]}</div>',
+                        unsafe_allow_html=True
+                    )
+                if "image" in content:
+                    img = content.get("image")
 
-    # Close button - prominent red styling
-    if st.button("Close", key="close_modal", use_container_width=False):
-        finalize_open_information("user_closed")
-        st.rerun()
-
-    st.divider()
+                    # Only attempt to render a non-empty image path.
+                    if isinstance(img, str) and img.strip():
+                        img = img.strip().replace("\\", "/")
+                        st.image(img)
+            else:
+                st.caption("No information is available at this time.")
 
 # Display tile grid
 st.subheader("Information Sources")
 # Lock tile selection while a tile is open (forces user to press Close)
 tile_lock = st.session_state.open_tile is not None
 if tile_lock:
-    st.info("Close the current window to open another information source.")
+    st.info("Close the open information source before selecting another one.")
+elif len(st.session_state.tiles_opened_this_step) == 0:
+    st.info("Open at least one information source before continuing.")
+else:
+    st.caption(
+        "You may review additional information sources or continue to the assessment."
+    )
 # Create 4 rows of 4 tiles each
 for row in range(4):
     cols = st.columns(4)
@@ -1398,7 +1737,6 @@ for row in range(4):
         tid = str(tile_num)
         label = TILES[tid]["label"]
 
-        is_new = has_new_update(tid) and tid not in st.session_state.viewed_updates
         text = label
 
         with cols[col_idx]:
@@ -1470,11 +1808,14 @@ if st.session_state.open_tile is not None:
         "Close the current information source before proceeding "
         "to the assessment."
     )
+elif len(st.session_state.tiles_opened_this_step) == 0:
+    st.caption("The assessment becomes available after you open one information source.")
 
 if st.button(
     "Go to Assessment",
     disabled=assessment_disabled,
-    use_container_width=True
+    use_container_width=True,
+    type="primary"
 ):
     # Defensive finalization: normally the tile was already closed explicitly.
     finalize_open_information("assessment_started")

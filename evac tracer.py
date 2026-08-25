@@ -312,6 +312,10 @@ st.markdown("""
     --wf-muted: #5f6f7f;
     --wf-primary: #315f7d;
     --wf-primary-dark: #244b65;
+    --wf-action-bg: #b8dcf2;
+    --wf-action-hover: #9ecdeb;
+    --wf-action-border: #72afd4;
+    --wf-action-text: #17324d;
     --wf-surface: #ffffff;
     --wf-background: #f4f6f8;
     --wf-border: #d8e0e7;
@@ -362,13 +366,30 @@ div[data-testid="stAlert"] {
 }
 
 .stButton > button[kind="primary"] {
-    background: var(--wf-primary);
-    border-color: var(--wf-primary);
+    background: var(--wf-action-bg);
+    border-color: var(--wf-action-border);
+    color: var(--wf-action-text) !important;
 }
 
-.stButton > button[kind="primary"]:hover {
-    background: var(--wf-primary-dark);
-    border-color: var(--wf-primary-dark);
+.stButton > button[kind="primary"] p {
+    color: var(--wf-action-text) !important;
+}
+
+.stButton > button[kind="primary"]:hover:not(:disabled) {
+    background: var(--wf-action-hover);
+    border-color: #579bc6;
+    color: var(--wf-action-text) !important;
+}
+
+.stButton > button[kind="primary"]:disabled {
+    background: #e1edf5;
+    border-color: #c2d5e2;
+    color: #526575 !important;
+    opacity: 1;
+}
+
+.stButton > button[kind="primary"]:disabled p {
+    color: #526575 !important;
 }
 
 /* Scope fixed-height, left-aligned styling to information-source tiles. */
@@ -435,9 +456,50 @@ div[class*="st-key-decision_choice_"] button {
 
 .wf-information-copy {
     max-width: 880px;
+    margin-top: 0.75rem;
     color: var(--wf-ink);
-    font-size: 1.08rem;
-    line-height: 1.6;
+    font-size: calc(1.08rem + 4pt);
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+/* Emphasize the decision-stage pull-down without changing other select boxes. */
+div[class*="st-key-decision_process_state_"] label p {
+    color: var(--wf-ink) !important;
+    font-size: 1.05rem;
+    font-weight: 650;
+}
+
+div[class*="st-key-decision_process_state_"]
+div[data-baseweb="select"] > div {
+    min-height: 3.25rem;
+    background: #f8fbfe !important;
+    border: 2px solid #6da9cf !important;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(35, 49, 66, 0.12);
+}
+
+div[class*="st-key-decision_process_state_"]
+div[data-baseweb="select"]:hover > div {
+    border-color: #397da8 !important;
+}
+
+div[class*="st-key-decision_process_state_"]
+div[data-baseweb="select"]:focus-within > div {
+    border-color: var(--wf-primary) !important;
+    box-shadow: 0 0 0 3px rgba(49, 95, 125, 0.18);
+}
+
+div[class*="st-key-decision_process_state_"]
+div[data-baseweb="select"] span {
+    color: var(--wf-ink) !important;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+div[class*="st-key-decision_process_state_"]
+div[data-baseweb="select"] svg {
+    fill: var(--wf-primary-dark);
 }
 
 .wf-anchor-left, .wf-anchor-right {
@@ -1345,7 +1407,7 @@ if st.session_state.in_decision:
     st.divider()
 
     with st.container(border=True):
-        st.markdown("### Record what you would do now")
+        st.markdown("### Decision Making")
         st.write(
             "First describe your current decision stage. Then select the "
             "action you would take at this moment."
@@ -1645,7 +1707,6 @@ if st.session_state.open_tile:
         panel_title_col, panel_close_col = st.columns([5, 1])
         with panel_title_col:
             st.markdown(f"### {tile['label']}")
-            st.caption("Open information source")
         with panel_close_col:
             if st.button(
                 "Close",
@@ -1654,8 +1715,6 @@ if st.session_state.open_tile:
             ):
                 finalize_open_information("user_closed")
                 st.rerun()
-
-        st.divider()
 
         if tile.get("type") == "social_contacts":
             for c in tile["contacts"]:
@@ -1698,19 +1757,21 @@ if st.session_state.open_tile:
                     st.info(reply)
         else:
             if content is not None:
-                if "text" in content:
-                    st.markdown(
-                        f'<div class="wf-information-copy">'
-                        f'{content["text"]}</div>',
-                        unsafe_allow_html=True
-                    )
+                # Images are optional. Text is always rendered below the image,
+                # so content containing both fields displays both elements.
                 if "image" in content:
                     img = content.get("image")
 
                     # Only attempt to render a non-empty image path.
                     if isinstance(img, str) and img.strip():
                         img = img.strip().replace("\\", "/")
-                        st.image(img)
+                        st.image(img, use_container_width=True)
+
+                st.markdown(
+                    f'<div class="wf-information-copy">'
+                    f'{content.get("text", "")}</div>',
+                    unsafe_allow_html=True
+                )
             else:
                 st.caption("No information is available at this time.")
 

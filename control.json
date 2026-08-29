@@ -203,10 +203,12 @@
           "image": "images/embers_close.jpg"
         },
         "-1": {
-          "text": "Flames visible nearby."
+          "text": "Flames visible nearby.",
+          "image": "images\\tile01_step_m1_flames_visible_nearby.jpg"
         },
         "0": {
-          "text": "Fire is destroying homes in the neighborhood."
+          "text": "Fire is destroying homes in the neighborhood.",
+          "image": "images\\hazard_step_0_houses_brning.jpg"
         }
       }
     },
@@ -218,7 +220,7 @@
           "image": "images/red_flag.jpg"
         },
         "-5": {
-          "text": "Fire Weather Watch remains in effect.",
+          "text": "Red Flag Warning remains in effect.",
           "image": "images/red_flag.jpg"
         },
         "-4": {
@@ -277,16 +279,20 @@
           "text": "Update: Fire growing. Winds have increased."
         },
         "-4": {
-          "text": "Update: Fire growing rapidly with strong winds."
+          "text": "Update: Fire growing rapidly with strong winds.",
+          "image": "images\\tile04_news_step_m4_growing_winds.jpg"
         },
         "-3": {
-          "text": "Live coverage: Evacuations underway in nearby communities."
+          "text": "Live coverage: Evacuations underway in nearby communities.",
+          "image": "images\\tile04_news_step_m3_evacuations_nearby.jpg"
         },
         "-2": {
-          "text": "Officials urge residents to follow evacuation orders."
+          "text": "Officials urge residents to follow evacuation orders.",
+          "image": "images\\tile04_news_step_m2_urge follow evac.png"
         },
         "-1": {
-          "text": "Breaking: Major roads closing due to fire activity."
+          "text": "Breaking: Major roads closing due to fire activity.",
+          "image": "images\\tile04_news_step_m1_road_closure.png"
         },
         "0": {
           "text": "All roads are closed."
@@ -304,20 +310,24 @@
           "text": "Traffic is increasing, but flowing."
         },
         "-4": {
-          "text": "Light congestion reported on main routes."
+          "text": "Light congestion reported on main routes.",
+          "image": "images\\tile_05_step_m4_light congestion.jpg"
         },
         "-3": {
-          "text": "Stop and go traffic on evacuation routes."
+          "text": "Stop and go traffic on evacuation routes.",
+          "image": "images\\tile_05_step_m3_stop_and_go.jpg"
         },
         "-2": {
           "text": "Heavy congestion and multiple road closures.",
           "image": "images/congestion_traffic.jpg"
         },
         "-1": {
-          "text": "Gridlock on major exits from the area."
+          "text": "Gridlock on major exits from the area.",
+          "image": "images\\congestion_traffic.jpg"
         },
         "0": {
-          "text": "People abandon their cars and walk."
+          "text": "People abandon their cars and walk.",
+          "image": "images\\tile_04_step_0_abandon_car.jpg"
         }
       }
     },
@@ -325,11 +335,11 @@
       "label": "Utilities and Infrastructure",
       "content": {
         "-6": {
-          "text": "No reports about any issues.",
-          "image": ""
+          "text": "No reports about any issues."
         },
         "-5": {
-          "text": "Possible power shutoffs announced."
+          "text": "Possible power shutoffs announced.",
+          "image": "images\\tile_05_step_m5_possible_outages.png"
         },
         "-4": {
           "text": "Rolling power outages reported.",
@@ -343,7 +353,8 @@
           "text": "Water pressure reduced in parts of the community."
         },
         "-1": {
-          "text": "Widespread power and communication outages in your community."
+          "text": "Widespread power and communication outages in your community.",
+          "image": "images\\tile04_news_step_m5_power_com_outages.jpg"
         },
         "0": {
           "text": "There is no power and cell phone reception is unreliable."
@@ -354,8 +365,7 @@
       "label": "Fire Location and Forecast",
       "content": {
         "-6": {
-          "text": "Wildfire is miles from neighborhood. Strong winds are forecast, but the direction of spread is uncertain.",
-          "image": ""
+          "text": "Wildfire is miles from neighborhood. Strong winds are forecast, but the direction of spread is uncertain."
         },
         "-5": {
           "text": "Growing fire moves toward populated areas. Neighborhood is not in projected fire area."
@@ -381,8 +391,7 @@
       "label": "Health and Smoke",
       "content": {
         "-6": {
-          "text": "No reports or information.",
-          "image": ""
+          "text": "Air Quiality Index: Good"
         },
         "-5": {
           "text": "Air quality advisory issued.",
@@ -395,13 +404,15 @@
           "text": "Coughing and reduced visibility reported."
         },
         "-2": {
-          "text": "Unhealthy air conditions outdoors."
+          "text": "Unhealthy air conditions outdoors.",
+          "image": "images\\tile_07_step_m2_airquality_unhealthy.jpg"
         },
         "-1": {
           "text": "Breathing difficult without protection."
         },
         "0": {
-          "text": "The sky is black and it is dark from the thick smoke."
+          "text": "The sky is black and it is dark from the thick smoke.",
+          "image": "images\\tile_08_step_0_dark_sky_smoke.jpg"
         }
       }
     },
@@ -409,26 +420,29 @@
       "label": "Evacuation Destinations",
       "content": {
         "-6": {
-          "text": "No reports at this time.",
-          "image": ""
+          "text": "No reports at this time."
         },
         "-5": {
-          "text": "Shelters are being prepared for evacuees."
+          "text": "Shelters are being prepared for evacuees.",
+          "image": "images\\tile_09_step_m5_preparation.jpg"
         },
         "-4": {
           "text": "County shelter opened at fairgrounds (pets allowed)."
         },
         "-3": {
-          "text": "Shelter filling quickly; limited space remaining."
+          "text": "Shelter filling quickly; limited space remaining.",
+          "image": "images\\tile_09_step_m3_shelters_filling_up.jpg"
         },
         "-2": {
-          "text": "Shelter at capacity. Alternate shelter 30 miles east."
+          "text": "Shelter at capacity. Alternate shelter 30 miles east.",
+          "image": "images\\tile_09_step_m2_full_shelter.jpg"
         },
         "-1": {
           "text": "All nearby shelters full. Consider staying with friends or family."
         },
         "0": {
-          "text": "No shelter space available."
+          "text": "No official shelter space available. ",
+          "image": "images\\tile_09_step_0_no_space_official.jpg"
         }
       }
     },
@@ -436,26 +450,29 @@
       "label": "Emergency Personnel Presence",
       "content": {
         "-6": {
-          "text": "No reports about Emergency Personnel.",
-          "image": ""
+          "text": "No reports about Emergency Personnel."
         },
         "-5": {
-          "text": "Fire crews staged in nearby areas."
+          "text": "Fire crews staged in nearby areas.",
+          "image": "images\\tile_10_step_m5_staging.jpg"
         },
         "-4": {
-          "text": "Police monitoring traffic intersections."
+          "text": "Police monitoring traffic intersections.",
+          "image": "images\\tile_10_stp_m4_police_traffic.jpg"
         },
         "-3": {
-          "text": "Fire engines visible in the neighborhood."
+          "text": "Fire engines visible in the neighborhood.",
+          "image": "images\\tile_10_step_m4_fireengines.jpg"
         },
         "-2": {
-          "text": "Emergency personnel redirected to active fire lines."
+          "text": "Emergency personnel redirected to active fire lines.",
+          "image": "images\\tile_10_step_m1_fireline.jpg"
         },
         "-1": {
           "text": "No emergency crews visible in residential streets."
         },
         "0": {
-          "text": "No crews are visible."
+          "text": "No crews are present in neighborhood."
         }
       }
     },
@@ -463,17 +480,19 @@
       "label": "Community Activity",
       "content": {
         "-6": {
-          "text": "No unusual activities.",
-          "image": ""
+          "text": "No unusual activities."
         },
         "-5": {
-          "text": "Some neighbors outside watching the smoke."
+          "text": "Some neighbors outside watching the smoke.",
+          "image": "images\\tile_11_step_m5_watching in distance.jpg"
         },
         "-4": {
-          "text": "Several homes loading cars."
+          "text": "Several homes loading cars.",
+          "image": "images\\tile_12_step_m4_loading_car.jpg"
         },
         "-3": {
-          "text": "Many neighbors leaving; some staying."
+          "text": "Many neighbors leaving; some staying.",
+          "image": "images\\tile_12_step_m3_empty.jpg"
         },
         "-2": {
           "text": "Most homes on the street appear empty."
@@ -534,26 +553,29 @@
       "label": "Transit Options",
       "content": {
         "-6": {
-          "text": "No reports about transit issues.",
-          "image": ""
+          "text": "No reports about transit issues."
         },
         "-5": {
-          "text": "Public buses still running on normal schedule."
+          "text": "Public buses still running on normal schedule.",
+          "image": "images\\step_13_step_m5_normal_schedule.jpg"
         },
         "-4": {
-          "text": "Public buses are affected by traffic. Increasing passenger numbers."
+          "text": "Public buses are affected by traffic. Increasing passenger numbers.",
+          "image": "images\\tile_13_step_m4_increase.jpg"
         },
         "-3": {
-          "text": "Evacuation buses announced at community center."
+          "text": "Evacuation buses announced at community center.",
+          "image": "images\\tile_13_step_m3_evac_busses.jpg"
         },
         "-2": {
-          "text": "Limited bus capacity; long waits reported."
+          "text": "Limited bus capacity; long waits reported.",
+          "image": "images\\tile_13_step_m2_lines.jpg"
         },
         "-1": {
           "text": "Bus service suspended due to road closures."
         },
         "0": {
-          "text": "No updates provided."
+          "text": "No transportation services available."
         }
       }
     },
@@ -615,8 +637,7 @@
       "label": "Nextdoor - local group",
       "content": {
         "-6": {
-          "text": "No discussion about the fire.",
-          "image": ""
+          "text": "No discussion about the fire."
         },
         "-5": {
           "text": "Online post claims the fire is mostly contained."

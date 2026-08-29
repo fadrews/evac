@@ -1,36 +1,5 @@
 # Wildfire Evacuation Decision Simulator
-# Version 2.6.3 - interface readability and compact assessment revision
-#
-# Version 2.6 introduces a versioned result schema, control-file hashing,
-# atomic result writes, strict preparation-time limits, stable assessment IDs,
-# explicit simulated decision times, and improved interaction-state logging.
-# Version 2.6.2 adds non-reactive opportunity-set and decision-state-change
-# logging. These records are for later analysis only and do not warn, verify,
-# constrain, or otherwise alter participant decisions.
-# Version 2.6.3 retains the 2.6.2 scenario and schema while introducing a
-# neutral, research-appropriate visual system and a compact 0-10 assessment
-# scale. The scale specification is written into every result and assessment
-# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.# Wildfire Evacuation Decision Simulator
-# Version 2.6.4 - standardized 16:9 image presentation
-#
-# Version 2.6 introduces a versioned result schema, control-file hashing,
-# atomic result writes, strict preparation-time limits, stable assessment IDs,
-# explicit simulated decision times, and improved interaction-state logging.
-# Version 2.6.2 adds non-reactive opportunity-set and decision-state-change
-# logging. These records are for later analysis only and do not warn, verify,
-# constrain, or otherwise alter participant decisions.
-# Version 2.6.3 retains the 2.6.2 scenario and schema while introducing a
-# neutral, research-appropriate visual system and a compact 0-10 assessment
-# scale. The scale specification is written into every result and assessment
-# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.
-# Version 2.6.4 standardizes all displayed scenario images on a responsive
-# 16:9 canvas. Images are centered and contained within the canvas without
-# cropping or distortion; neutral padding is added when the source aspect
-# ratio differs. Optional tile images remain independent of the required text,
-# so text is always displayed whether or not an image is present.
-
-# Wildfire Evacuation Decision Simulator
-# Version 2.6.5 - compact 16:9 image presentation
+# Version 3.0 - unified 30/60-minute scenario support
 #
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
@@ -52,6 +21,11 @@
 # browser display is limited to 720 pixels wide, and the visible frame border
 # is removed. This reduces unused space between the image and its accompanying
 # text while preserving a consistent display area and the complete image.
+# Version 2.6.6 removes the original-scenario lock and reads the scenario
+# interval from control.json. It supports both the original 60-minute control
+# and the Iron Fire 30-minute control. A legacy maximum_minutes value greater
+# than the configured interval is safely capped at the interval so simulated
+# action and decision times cannot run past the next scheduled scenario step.
 
 import streamlit as st
 import json
@@ -80,7 +54,7 @@ st.set_page_config(
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "2.6.5"
+APP_VERSION = "3.0"
 RESULT_SCHEMA_VERSION = "3.2"
 CONTROL_PATH = Path("control.json")
 
@@ -109,19 +83,48 @@ def load_control():
 CONTROL = load_control()
 CONTROL_SHA256 = hashlib.sha256(CONTROL_PATH.read_bytes()).hexdigest()
 TITLE = CONTROL.get("title", "Research Scenario")
-SCENARIO_ID = CONTROL.get("scenario_id")
-SCENARIO_VERSION = str(CONTROL.get("scenario_version", "unspecified"))
 TIME_STEPS = CONTROL.get("time_steps", [])
 TIME_STEP_MINUTES = int(CONTROL.get("time_step_minutes", 60))
 TILES = CONTROL.get("tiles", {})
 PREP_ACTIONS = CONTROL.get("preparation_actions", [])
 
+
+def scenario_identifier(value, fallback_title):
+    """Return a stable readable scenario ID when an older control omits one."""
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+
+    normalized = "".join(
+        character.lower() if character.isalnum() else "_"
+        for character in str(fallback_title)
+    )
+    normalized = "_".join(part for part in normalized.split("_") if part)
+    return normalized or f"control_{CONTROL_SHA256[:12]}"
+
+
+SCENARIO_ID_SOURCE = (
+    "control_file"
+    if isinstance(CONTROL.get("scenario_id"), str)
+    and CONTROL.get("scenario_id").strip()
+    else "derived_from_title"
+)
+SCENARIO_ID = scenario_identifier(CONTROL.get("scenario_id"), TITLE)
+SCENARIO_VERSION_SOURCE = (
+    "control_file"
+    if CONTROL.get("scenario_version") not in (None, "")
+    else "derived_from_control_hash"
+)
+SCENARIO_VERSION = str(
+    CONTROL.get("scenario_version")
+    or f"control-{CONTROL_SHA256[:12]}"
+)
+
 # Simulated preparation-time budget for each scenario step.
 DECISION_TIME = CONTROL.get("decision_time", {})
 NOMINAL_MINUTES = int(DECISION_TIME.get("nominal_minutes", 60))
-MAX_MINUTES = int(DECISION_TIME.get("maximum_minutes", 70))
+CONFIGURED_MAX_MINUTES = int(DECISION_TIME.get("maximum_minutes", NOMINAL_MINUTES))
 
-if MAX_MINUTES < NOMINAL_MINUTES:
+if CONFIGURED_MAX_MINUTES < NOMINAL_MINUTES:
     st.error("control.json error: maximum_minutes must be >= nominal_minutes.")
     st.stop()
 
@@ -136,24 +139,14 @@ if NOMINAL_MINUTES > TIME_STEP_MINUTES:
     )
     st.stop()
 
-if MAX_MINUTES > TIME_STEP_MINUTES:
-    st.error(
-        "control.json error: maximum_minutes cannot exceed the allocated "
-        "time_step_minutes. Set maximum_minutes to 60 for the original "
-        "60-minute scenario."
-    )
-    st.stop()
+# The preparation period cannot extend past the next scheduled scenario step.
+# This normalizes the Iron Fire draft's legacy 35-minute maximum to its
+# configured 30-minute interval without requiring a separate control file.
+MAX_MINUTES = min(CONFIGURED_MAX_MINUTES, TIME_STEP_MINUTES)
+TIME_BUDGET_WAS_CAPPED_TO_STEP = CONFIGURED_MAX_MINUTES > TIME_STEP_MINUTES
 
 if not TIME_STEPS:
     st.error("control.json error: time_steps must contain at least one step.")
-    st.stop()
-
-if SCENARIO_ID != "original_wildfire":
-    st.error(
-        "control.json error: wildfire_simulator_v2_6.py is currently limited "
-        "to scenario_id 'original_wildfire'. Use the matching revised original "
-        "control file. The Iron Fire scenario is intentionally excluded."
-    )
     st.stop()
 
 ACTION_IDS = [action.get("id") for action in PREP_ACTIONS]
@@ -639,7 +632,9 @@ def result_document():
         },
         "scenario": {
             "scenario_id": SCENARIO_ID,
+            "scenario_id_source": SCENARIO_ID_SOURCE,
             "scenario_version": SCENARIO_VERSION,
+            "scenario_version_source": SCENARIO_VERSION_SOURCE,
             "title": TITLE,
             "control_filename": CONTROL_PATH.name,
             "control_sha256": CONTROL_SHA256,
@@ -647,6 +642,10 @@ def result_document():
             "time_step_minutes": TIME_STEP_MINUTES,
             "nominal_minutes": NOMINAL_MINUTES,
             "maximum_minutes": MAX_MINUTES,
+            "configured_maximum_minutes": CONFIGURED_MAX_MINUTES,
+            "time_budget_was_capped_to_step": (
+                TIME_BUDGET_WAS_CAPPED_TO_STEP
+            ),
             "time_steps": TIME_STEPS,
             "assessment_scale": {
                 "minimum": ASSESSMENT_SCALE_MIN,
@@ -926,7 +925,7 @@ def render_context_header(activity, *, show_scenario_time=True):
 
 
 def scenario_briefing_sections(intro):
-    """Group the unchanged original-scenario facts into readable sections."""
+    """Group long briefings while leaving shorter scenarios intact."""
     lines = [str(line).strip() for line in intro.get("text", []) if str(line).strip()]
     if len(lines) >= 13:
         return [
@@ -1120,6 +1119,10 @@ def log_scenario_step_started_once():
             "time_step_minutes": TIME_STEP_MINUTES,
             "nominal_minutes": NOMINAL_MINUTES,
             "maximum_minutes": MAX_MINUTES,
+            "configured_maximum_minutes": CONFIGURED_MAX_MINUTES,
+            "time_budget_was_capped_to_step": (
+                TIME_BUDGET_WAS_CAPPED_TO_STEP
+            ),
             "available_information_source_ids": sorted_tile_ids,
             "available_preparation_action_ids": [
                 action["action_id"]
@@ -1185,21 +1188,24 @@ if st.session_state.show_intro:
     intro = CONTROL["scenario_description"]
     render_context_header("Scenario briefing", show_scenario_time=False)
     st.header(intro["title"])
-    c1, c2 = st.columns(2)
-    with c1:
-        with st.container(border=True):
-            if "image_house" in intro:
-                render_fixed_image(
-                    intro["image_house"],
-                    caption="Scenario household"
-                )
-    with c2:
-        with st.container(border=True):
-            if "image_map" in intro:
-                render_fixed_image(
-                    intro["image_map"],
-                    caption="Scenario area map"
-                )
+    briefing_images = [
+        (intro.get("image_house"), "Scenario household"),
+        (intro.get("image_map"), "Scenario area map")
+    ]
+    briefing_images = [
+        (image_path, caption)
+        for image_path, caption in briefing_images
+        if isinstance(image_path, str) and image_path.strip()
+    ]
+    if briefing_images:
+        image_columns = st.columns(len(briefing_images))
+        for image_column, (image_path, caption) in zip(
+            image_columns,
+            briefing_images
+        ):
+            with image_column:
+                with st.container(border=True):
+                    render_fixed_image(image_path, caption=caption)
 
     briefing_sections = scenario_briefing_sections(intro)
     for row_start in range(0, len(briefing_sections), 2):
@@ -1370,6 +1376,10 @@ if st.session_state.in_decision:
                     "time_step_minutes": TIME_STEP_MINUTES,
                     "nominal_minutes": NOMINAL_MINUTES,
                     "maximum_minutes": MAX_MINUTES,
+                    "configured_maximum_minutes": CONFIGURED_MAX_MINUTES,
+                    "time_budget_was_capped_to_step": (
+                        TIME_BUDGET_WAS_CAPPED_TO_STEP
+                    ),
                     "minutes_used_at_snapshot": used_minutes,
                     "minutes_remaining_at_snapshot": remaining_cap
                 },
@@ -1598,7 +1608,7 @@ if st.session_state.in_decision:
         st.session_state.final_choice = choice
         st.session_state.decision_process_state = selected_process_state
 
-        # Preserve action order and cumulative simulated time in the hourly log.
+        # Preserve action order and cumulative simulated time in the period log.
         action_sequence = []
         running_total = 0
         for action_id in st.session_state.prep_actions_this_step:

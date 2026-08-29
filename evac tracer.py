@@ -1,6 +1,5 @@
 # Wildfire Evacuation Decision Simulator
 # Version 2.6.3 - interface readability and compact assessment revision
-#
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
 # explicit simulated decision times, and improved interaction-state logging.
@@ -12,6 +11,23 @@
 # scale. The scale specification is written into every result and assessment
 # submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.
 
+# Version 2.6.4 - standardized 16:9 image presentation
+# Version 2.6 introduces a versioned result schema, control-file hashing,
+# atomic result writes, strict preparation-time limits, stable assessment IDs,
+# explicit simulated decision times, and improved interaction-state logging.
+# Version 2.6.2 adds non-reactive opportunity-set and decision-state-change
+# logging. These records are for later analysis only and do not warn, verify,
+# constrain, or otherwise alter participant decisions.
+# Version 2.6.3 retains the 2.6.2 scenario and schema while introducing a
+# neutral, research-appropriate visual system and a compact 0-10 assessment
+# scale. The scale specification is written into every result and assessment
+# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.
+# Version 2.6.4 standardizes all displayed scenario images on a responsive
+# 16:9 canvas. Images are centered and contained within the canvas without
+# cropping or distortion; neutral padding is added when the source aspect
+# ratio differs. Optional tile images remain independent of the required text,
+# so text is always displayed whether or not an image is present.
+
 import streamlit as st
 import json
 import datetime
@@ -22,8 +38,11 @@ import os
 import smtplib
 import ssl
 import time
+from io import BytesIO
 from email.message import EmailMessage
 from pathlib import Path
+
+from PIL import Image, ImageOps
 
 # Set wide layout for the fixed 4 x 4 information-source grid.
 st.set_page_config(
@@ -36,7 +55,7 @@ st.set_page_config(
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "2.6.3"
+APP_VERSION = "2.6.4"
 RESULT_SCHEMA_VERSION = "3.2"
 CONTROL_PATH = Path("control.json")
 
@@ -44,6 +63,13 @@ ASSESSMENT_SCALE_MIN = 0
 ASSESSMENT_SCALE_MAX = 10
 ASSESSMENT_SCALE_DEFAULT = 5
 ASSESSMENT_SCALE_STEP = 1
+
+# All scenario images are rendered on the same 16:9 canvas. The browser may
+# scale the canvas responsively, but its aspect ratio and occupied layout space
+# remain consistent across portrait, landscape, and square source images.
+IMAGE_CANVAS_SIZE = (1200, 675)
+IMAGE_CANVAS_COLOR = (244, 246, 248, 255)
+IMAGE_RESAMPLING = getattr(Image, "Resampling", Image).LANCZOS
 
 
 def load_control():
@@ -463,6 +489,21 @@ div[class*="st-key-decision_choice_"] button {
     line-height: 1.45;
 }
 
+/* Keep scenario imagery aligned with the information-copy measure. The image
+   bytes already use a 16:9 canvas; this rule limits their desktop footprint
+   while allowing them to shrink with narrower browser windows. */
+div[data-testid="stImage"] {
+    width: 100%;
+    max-width: 880px;
+}
+
+div[data-testid="stImage"] img {
+    display: block;
+    border: 1px solid var(--wf-border);
+    border-radius: 8px;
+    background: var(--wf-background);
+}
+
 /* Emphasize the decision-stage pull-down without changing other select boxes. */
 div[class*="st-key-decision_process_state_"] label p {
     color: var(--wf-ink) !important;
@@ -693,6 +734,60 @@ def email_results_file(results_path=None):
 # ======================================================
 # 4. HELPERS
 # ======================================================
+@st.cache_data(show_spinner=False)
+def fixed_image_bytes(image_path, modified_time_ns):
+    """Return a local image centered on a standard 16:9 PNG canvas.
+
+    ``modified_time_ns`` is included in the cache key so replacing an image at
+    the same path invalidates the cached rendering automatically.
+    """
+    del modified_time_ns  # Used by Streamlit's cache key, not image processing.
+
+    with Image.open(image_path) as source:
+        source = ImageOps.exif_transpose(source).convert("RGBA")
+
+        # thumbnail() preserves aspect ratio and avoids enlarging small source
+        # images. Larger images are reduced to fit entirely within the canvas.
+        fitted = source.copy()
+        fitted.thumbnail(IMAGE_CANVAS_SIZE, IMAGE_RESAMPLING)
+
+        canvas = Image.new("RGBA", IMAGE_CANVAS_SIZE, IMAGE_CANVAS_COLOR)
+        position = (
+            (IMAGE_CANVAS_SIZE[0] - fitted.width) // 2,
+            (IMAGE_CANVAS_SIZE[1] - fitted.height) // 2
+        )
+        canvas.alpha_composite(fitted, dest=position)
+
+        output = BytesIO()
+        canvas.convert("RGB").save(output, format="PNG")
+        return output.getvalue()
+
+
+def render_fixed_image(image_path, caption=None):
+    """Render an optional local image in a consistent responsive 16:9 frame."""
+    if not isinstance(image_path, str) or not image_path.strip():
+        return False
+
+    normalized_path = image_path.strip().replace("\\", "/")
+    path = Path(normalized_path)
+
+    try:
+        modified_time_ns = path.stat().st_mtime_ns
+        image_bytes = fixed_image_bytes(
+            str(path.resolve()),
+            modified_time_ns
+        )
+    except (OSError, ValueError) as exc:
+        st.warning(f"Image could not be displayed: {normalized_path} ({exc})")
+        return False
+
+    st.image(image_bytes, use_container_width=True)
+    if caption:
+        st.caption(caption)
+
+    return True
+
+
 def clear_open_information_state():
     """Clear all tile and social-message display and timing state."""
     st.session_state.open_tile = None
@@ -1067,13 +1162,17 @@ if st.session_state.show_intro:
     with c1:
         with st.container(border=True):
             if "image_house" in intro:
-                st.image(intro["image_house"], use_container_width=True)
-                st.caption("Scenario household")
+                render_fixed_image(
+                    intro["image_house"],
+                    caption="Scenario household"
+                )
     with c2:
         with st.container(border=True):
             if "image_map" in intro:
-                st.image(intro["image_map"], use_container_width=True)
-                st.caption("Scenario area map")
+                render_fixed_image(
+                    intro["image_map"],
+                    caption="Scenario area map"
+                )
 
     briefing_sections = scenario_briefing_sections(intro)
     for row_start in range(0, len(briefing_sections), 2):
@@ -1764,8 +1863,7 @@ if st.session_state.open_tile:
 
                     # Only attempt to render a non-empty image path.
                     if isinstance(img, str) and img.strip():
-                        img = img.strip().replace("\\", "/")
-                        st.image(img, use_container_width=True)
+                        render_fixed_image(img)
 
                 st.markdown(
                     f'<div class="wf-information-copy">'

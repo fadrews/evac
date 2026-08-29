@@ -1,5 +1,6 @@
 # Wildfire Evacuation Decision Simulator
 # Version 2.6.3 - interface readability and compact assessment revision
+#
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
 # explicit simulated decision times, and improved interaction-state logging.
@@ -9,9 +10,9 @@
 # Version 2.6.3 retains the 2.6.2 scenario and schema while introducing a
 # neutral, research-appropriate visual system and a compact 0-10 assessment
 # scale. The scale specification is written into every result and assessment
-# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.
-
+# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.# Wildfire Evacuation Decision Simulator
 # Version 2.6.4 - standardized 16:9 image presentation
+#
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
 # explicit simulated decision times, and improved interaction-state logging.
@@ -27,6 +28,30 @@
 # cropping or distortion; neutral padding is added when the source aspect
 # ratio differs. Optional tile images remain independent of the required text,
 # so text is always displayed whether or not an image is present.
+
+# Wildfire Evacuation Decision Simulator
+# Version 2.6.5 - compact 16:9 image presentation
+#
+# Version 2.6 introduces a versioned result schema, control-file hashing,
+# atomic result writes, strict preparation-time limits, stable assessment IDs,
+# explicit simulated decision times, and improved interaction-state logging.
+# Version 2.6.2 adds non-reactive opportunity-set and decision-state-change
+# logging. These records are for later analysis only and do not warn, verify,
+# constrain, or otherwise alter participant decisions.
+# Version 2.6.3 retains the 2.6.2 scenario and schema while introducing a
+# neutral, research-appropriate visual system and a compact 0-10 assessment
+# scale. The scale specification is written into every result and assessment
+# submission so that 2.6.2 and 2.6.3 scores cannot be confused in analysis.
+# Version 2.6.4 standardizes all displayed scenario images on a responsive
+# 16:9 canvas. Images are centered and contained within the canvas without
+# cropping or distortion; neutral padding is added when the source aspect
+# ratio differs. Optional tile images remain independent of the required text,
+# so text is always displayed whether or not an image is present.
+# Version 2.6.5 makes the 16:9 presentation more compact. Images now scale up
+# or down to use the maximum available canvas area without cropping, the
+# browser display is limited to 720 pixels wide, and the visible frame border
+# is removed. This reduces unused space between the image and its accompanying
+# text while preserving a consistent display area and the complete image.
 
 import streamlit as st
 import json
@@ -55,7 +80,7 @@ st.set_page_config(
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "2.6.4"
+APP_VERSION = "2.6.5"
 RESULT_SCHEMA_VERSION = "3.2"
 CONTROL_PATH = Path("control.json")
 
@@ -68,7 +93,7 @@ ASSESSMENT_SCALE_STEP = 1
 # scale the canvas responsively, but its aspect ratio and occupied layout space
 # remain consistent across portrait, landscape, and square source images.
 IMAGE_CANVAS_SIZE = (1200, 675)
-IMAGE_CANVAS_COLOR = (244, 246, 248, 255)
+IMAGE_CANVAS_COLOR = (255, 255, 255, 255)
 IMAGE_RESAMPLING = getattr(Image, "Resampling", Image).LANCZOS
 
 
@@ -482,26 +507,25 @@ div[class*="st-key-decision_choice_"] button {
 
 .wf-information-copy {
     max-width: 880px;
-    margin-top: 0.75rem;
+    margin-top: 0.45rem;
     color: var(--wf-ink);
     font-size: calc(1.08rem + 4pt);
     font-weight: 700;
     line-height: 1.45;
 }
 
-/* Keep scenario imagery aligned with the information-copy measure. The image
-   bytes already use a 16:9 canvas; this rule limits their desktop footprint
-   while allowing them to shrink with narrower browser windows. */
+/* Use a compact image footprint. The image bytes already use a 16:9 canvas;
+   this limits their desktop width while allowing responsive shrinking. */
 div[data-testid="stImage"] {
     width: 100%;
-    max-width: 880px;
+    max-width: 720px;
 }
 
 div[data-testid="stImage"] img {
     display: block;
-    border: 1px solid var(--wf-border);
-    border-radius: 8px;
-    background: var(--wf-background);
+    border: 0;
+    border-radius: 6px;
+    background: var(--wf-surface);
 }
 
 /* Emphasize the decision-stage pull-down without changing other select boxes. */
@@ -746,10 +770,13 @@ def fixed_image_bytes(image_path, modified_time_ns):
     with Image.open(image_path) as source:
         source = ImageOps.exif_transpose(source).convert("RGBA")
 
-        # thumbnail() preserves aspect ratio and avoids enlarging small source
-        # images. Larger images are reduced to fit entirely within the canvas.
-        fitted = source.copy()
-        fitted.thumbnail(IMAGE_CANVAS_SIZE, IMAGE_RESAMPLING)
+        # contain() preserves the complete source image and scales it up or
+        # down so it uses the maximum available area without being cropped.
+        fitted = ImageOps.contain(
+            source,
+            IMAGE_CANVAS_SIZE,
+            method=IMAGE_RESAMPLING
+        )
 
         canvas = Image.new("RGBA", IMAGE_CANVAS_SIZE, IMAGE_CANVAS_COLOR)
         position = (

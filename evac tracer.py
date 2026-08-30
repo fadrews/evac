@@ -1,5 +1,5 @@
 # Wildfire Evacuation Decision Simulator
-# Version 3.0 - unified 30/60-minute scenario support
+# Version 3.1 - required click-to-select assessment scales
 #
 # Version 2.6 introduces a versioned result schema, control-file hashing,
 # atomic result writes, strict preparation-time limits, stable assessment IDs,
@@ -26,6 +26,13 @@
 # and the Iron Fire 30-minute control. A legacy maximum_minutes value greater
 # than the configured interval is safely capped at the interval so simulated
 # action and decision times cannot run past the next scheduled scenario step.
+# Version 3.0 renames the unified 30/60-minute simulator release.
+# Version 3.1 replaces assessment sliders that began at 5 with horizontal,
+# click-to-select 0-10 response scales that begin without a selected value.
+# The most recently clicked response remains selected, and participants cannot
+# continue until all eight assessment scales have a response. Result metadata
+# now identifies the unselected initial state, required-selection rule, and
+# horizontal-radio widget so 3.1 responses cannot be mistaken for defaulted 5s.
 
 import streamlit as st
 import json
@@ -54,14 +61,21 @@ st.set_page_config(
 # ======================================================
 # 1. LOAD CONTROL FILE
 # ======================================================
-APP_VERSION = "3.0"
+APP_VERSION = "3.1"
 RESULT_SCHEMA_VERSION = "3.2"
 CONTROL_PATH = Path("control.json")
 
 ASSESSMENT_SCALE_MIN = 0
 ASSESSMENT_SCALE_MAX = 10
-ASSESSMENT_SCALE_DEFAULT = 5
+ASSESSMENT_SCALE_DEFAULT = None
 ASSESSMENT_SCALE_STEP = 1
+ASSESSMENT_SCALE_OPTIONS = list(range(
+    ASSESSMENT_SCALE_MIN,
+    ASSESSMENT_SCALE_MAX + ASSESSMENT_SCALE_STEP,
+    ASSESSMENT_SCALE_STEP
+))
+ASSESSMENT_SELECTION_REQUIRED = True
+ASSESSMENT_WIDGET_TYPE = "horizontal_radio_scale"
 
 # All scenario images are rendered on the same 16:9 canvas. The browser may
 # scale the canvas responsively, but its aspect ratio and occupied layout space
@@ -651,7 +665,10 @@ def result_document():
                 "minimum": ASSESSMENT_SCALE_MIN,
                 "maximum": ASSESSMENT_SCALE_MAX,
                 "default": ASSESSMENT_SCALE_DEFAULT,
-                "step": ASSESSMENT_SCALE_STEP
+                "step": ASSESSMENT_SCALE_STEP,
+                "initial_state": "unselected",
+                "selection_required": ASSESSMENT_SELECTION_REQUIRED,
+                "widget_type": ASSESSMENT_WIDGET_TYPE
             },
             "assessment_variable_ids": [
                 variable["id"] for variable in ASSESSMENT_VARIABLES
@@ -1236,8 +1253,8 @@ if st.session_state.in_assessment:
     st.subheader("Situation Assessment")
     st.info(
         "Rate each item from 0 to 10 based on the situation as you understand "
-        "it now. Every slider begins at 5; leave it at 5 if that represents "
-        "your response."
+        "it now. No response is selected in advance. Click one value for "
+        "every item; you may change a response before continuing."
     )
 
     results = {}
@@ -1255,12 +1272,11 @@ if st.session_state.in_assessment:
                         f"{len(ASSESSMENT_VARIABLES)}"
                     )
                     st.markdown(f"**{variable['prompt']}**")
-                    results[variable_id] = st.slider(
+                    results[variable_id] = st.radio(
                         variable["prompt"],
-                        ASSESSMENT_SCALE_MIN,
-                        ASSESSMENT_SCALE_MAX,
-                        ASSESSMENT_SCALE_DEFAULT,
-                        step=ASSESSMENT_SCALE_STEP,
+                        options=ASSESSMENT_SCALE_OPTIONS,
+                        index=None,
+                        horizontal=True,
                         key=(
                             f"assessment_{variable_id}_"
                             f"{st.session_state.time_index}"
@@ -1283,11 +1299,32 @@ if st.session_state.in_assessment:
                             unsafe_allow_html=True
                         )
 
-    if st.button(
+    unanswered_variables = [
+        variable
+        for variable in ASSESSMENT_VARIABLES
+        if results[variable["id"]] is None
+    ]
+    completed_count = len(ASSESSMENT_VARIABLES) - len(unanswered_variables)
+    all_scales_completed = not unanswered_variables
+
+    st.caption(
+        f"{completed_count} of {len(ASSESSMENT_VARIABLES)} "
+        "assessment questions completed."
+    )
+    if not all_scales_completed:
+        st.info(
+            "Select one value for every assessment question before "
+            "continuing."
+        )
+
+    continue_to_decisions = st.button(
         "Continue to Decisions",
         type="primary",
-        use_container_width=True
-    ):
+        use_container_width=True,
+        disabled=not all_scales_completed
+    )
+
+    if continue_to_decisions:
         assessment_duration = (
             time.perf_counter() - st.session_state.assessment_start_perf
         )
@@ -1305,6 +1342,7 @@ if st.session_state.in_assessment:
             interaction_records[variable_id] = {
                 "value": results[variable_id],
                 "default_value": ASSESSMENT_SCALE_DEFAULT,
+                "selection_required": ASSESSMENT_SELECTION_REQUIRED,
                 **record
             }
 
@@ -1317,7 +1355,10 @@ if st.session_state.in_assessment:
                     "minimum": ASSESSMENT_SCALE_MIN,
                     "maximum": ASSESSMENT_SCALE_MAX,
                     "default": ASSESSMENT_SCALE_DEFAULT,
-                    "step": ASSESSMENT_SCALE_STEP
+                    "step": ASSESSMENT_SCALE_STEP,
+                    "initial_state": "unselected",
+                    "selection_required": ASSESSMENT_SELECTION_REQUIRED,
+                    "widget_type": ASSESSMENT_WIDGET_TYPE
                 },
                 "server_elapsed_seconds": assessment_duration
             }
